@@ -1,70 +1,9 @@
 #include "interception.h"
+#include "physical_key_detector.h"
 #include <Windows.h>
 #include <conio.h>
 #include <iomanip>
 #include <iostream>
-
-// Modifier key scan codes (based on actual testing)
-#define SCANCODE_LCTRL 0x1D
-#define SCANCODE_RCTRL 0x1D // with E0 flag
-#define SCANCODE_LSHIFT 0x2A
-#define SCANCODE_RSHIFT 0x36
-#define SCANCODE_LALT 0x38
-#define SCANCODE_RALT 0x38 // with E0 flag
-#define SCANCODE_LWIN 0x5B // with E0 flag
-#define SCANCODE_RWIN 0x5C // with E0 flag
-
-// Modifier key states structure
-struct ModifierKeyStates {
-  bool lctrl = false;
-  bool rctrl = false;
-  bool lshift = false;
-  bool rshift = false;
-  bool lalt = false;
-  bool ralt = false;
-  bool lwin = false;
-  bool rwin = false;
-};
-
-// Update modifier key state
-void updateModifierState(ModifierKeyStates &states,
-                         const InterceptionKeyStroke &stroke) {
-  bool isPressed = !(stroke.state & INTERCEPTION_KEY_UP);
-  bool isE0 = stroke.state & INTERCEPTION_KEY_E0;
-
-  switch (stroke.code) {
-  case SCANCODE_LCTRL:
-    if (isE0) {
-      states.rctrl = isPressed;
-    } else {
-      states.lctrl = isPressed;
-    }
-    break;
-  case SCANCODE_LSHIFT:
-    states.lshift = isPressed;
-    break;
-  case SCANCODE_RSHIFT:
-    states.rshift = isPressed;
-    break;
-  case SCANCODE_LALT:
-    if (isE0) {
-      states.ralt = isPressed;
-    } else {
-      states.lalt = isPressed;
-    }
-    break;
-  case SCANCODE_LWIN:
-    if (isE0) {
-      states.lwin = isPressed;
-    }
-    break;
-  case SCANCODE_RWIN:
-    if (isE0) {
-      states.rwin = isPressed;
-    }
-    break;
-  }
-}
 
 // Display modifier key states
 void displayModifierStates(const ModifierKeyStates &states) {
@@ -94,30 +33,15 @@ void displayModifierStates(const ModifierKeyStates &states) {
 
   std::cout << std::endl;
   std::cout << "Combined: ";
-  if (states.lctrl || states.rctrl)
+  if (states.anyCtrl())
     std::cout << "Ctrl ";
-  if (states.lshift || states.rshift)
+  if (states.anyShift())
     std::cout << "Shift ";
-  if (states.lalt || states.ralt)
+  if (states.anyAlt())
     std::cout << "Alt ";
-  if (states.lwin || states.rwin)
+  if (states.anyWin())
     std::cout << "Win ";
   std::cout << std::endl;
-}
-
-// Check if key is a modifier key
-bool isModifierKey(const InterceptionKeyStroke &stroke) {
-  switch (stroke.code) {
-  case SCANCODE_LCTRL:
-  case SCANCODE_LSHIFT:
-  case SCANCODE_RSHIFT:
-  case SCANCODE_LALT:
-  case SCANCODE_LWIN:
-  case SCANCODE_RWIN:
-    return true;
-  default:
-    return false;
-  }
 }
 
 int main() {
@@ -142,12 +66,13 @@ int main() {
       INTERCEPTION_FILTER_KEY_DOWN | INTERCEPTION_FILTER_KEY_UP |
           INTERCEPTION_FILTER_KEY_E0 | INTERCEPTION_FILTER_KEY_E1);
 
-  ModifierKeyStates states;
-  displayModifierStates(states);
+  // Initialize physical key detector
+  PhysicalKeyDetector detector;
+  displayModifierStates(detector.getStates());
 
   std::cout << "Driver initialized successfully, listening..." << std::endl;
   Sleep(1000);
-  displayModifierStates(states);
+  displayModifierStates(detector.getStates());
 
   // Main loop
   while (true) {
@@ -165,11 +90,9 @@ int main() {
           break;
         }
 
-        // Update modifier key state
-        if (isModifierKey(stroke)) {
-          updateModifierState(states, stroke);
-          displayModifierStates(states);
-        }
+        // Process key stroke with detector
+        detector.processKeyStroke(stroke);
+        displayModifierStates(detector.getStates());
 
         // Forward key event to not block normal input
         interception_send(context, device, (InterceptionStroke *)&stroke, 1);
