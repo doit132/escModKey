@@ -1,8 +1,28 @@
 add_rules("mode.debug", "mode.release")
 
-target("hello")
+-- 添加包含目录
+add_includedirs("include")
+
+target("escModKey")
     set_kind("binary")
     add_files("src/*.cpp")
+    -- 添加库目录
+    add_linkdirs("lib")
+    -- 链接DLL
+    add_links("interception")
+    -- 定义复制 interception.dll 到输出目录的规则
+    after_build(
+        function (target)
+        -- 获取目标输出目录
+        local target_dir = path.directory(target:targetfile())
+
+        -- 定义 dll 文件路径
+        local dll_file = path.join("lib", "interception.dll")
+
+        -- 复制 dll 文件到目标输出目录
+        os.cp(dll_file, target_dir)
+    end)
+
 
 --
 -- If you want to known more usage about xmake, please see https://xmake.io
