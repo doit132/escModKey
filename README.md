@@ -38,6 +38,17 @@ Hardware-level detection of modifier key states (Ctrl, Shift, Alt, Win).
 
 **Documentation:** See `USAGE.md`
 
+### VirtualKeyDetector
+
+Software-level detection of modifier key states (Ctrl, Shift, Alt, Win).
+
+**Features:**
+- Detects virtual key states via Windows API
+- Can be affected by software key simulation
+- Distinguishes between left and right modifier keys
+- No special privileges required
+- Simple polling-based API
+
 ## Building
 
 ```bash
@@ -47,6 +58,7 @@ xmake
 This will build:
 - `escModKey.exe` - Main program
 - `test_physical_detector.exe` - Physical key detector test
+- `test_virtual_detector.exe` - Virtual key detector test
 
 ## Running
 
@@ -55,14 +67,22 @@ This will build:
 .\run.ps1
 ```
 
-### Test Program
+### Test Programs
+
+**Physical Key Detector:**
 ```powershell
 .\run_test.ps1
 ```
 
-Or manually with administrator privileges:
+**Virtual Key Detector:**
+```powershell
+.\run_test_virtual.ps1
+```
+
+Or manually:
 ```bash
 .\build\windows\x64\release\test_physical_detector.exe
+.\build\windows\x64\release\test_virtual_detector.exe
 ```
 
 ## Requirements
@@ -83,6 +103,6 @@ To add a new test:
 
 ## Next Steps
 
-- Virtual key detector module (planned)
+- Combine physical and virtual detection for comparison
 - Additional input detection features
 
