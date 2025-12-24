@@ -19,6 +19,14 @@ struct ModifierKeyStates {
   bool anyShift() const { return lshift || rshift; }
   bool anyAlt() const { return lalt || ralt; }
   bool anyWin() const { return lwin || rwin; }
+
+  // Check if states have changed
+  bool operator!=(const ModifierKeyStates &other) const {
+    return lctrl != other.lctrl || rctrl != other.rctrl ||
+           lshift != other.lshift || rshift != other.rshift ||
+           lalt != other.lalt || ralt != other.ralt || lwin != other.lwin ||
+           rwin != other.rwin;
+  }
 };
 
 // Physical key detector class
