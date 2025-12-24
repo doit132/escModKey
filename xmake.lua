@@ -3,7 +3,7 @@ add_rules("mode.debug", "mode.release")
 -- Add include directory
 add_includedirs("include")
 
--- Main program
+-- Main program (Console version)
 target("escModKey")
     set_kind("binary")
     add_files("src/main.cpp", "src/physical_key_detector.cpp", 
@@ -11,6 +11,23 @@ target("escModKey")
     add_linkdirs("lib")
     add_links("interception")
     add_syslinks("user32")
+    after_build(function (target)
+        local target_dir = path.directory(target:targetfile())
+        local dll_file = path.join("lib", "interception.dll")
+        os.cp(dll_file, target_dir)
+    end)
+
+-- GUI version (System tray)
+target("escModKey_gui")
+    set_kind("binary")
+    set_targetdir("$(buildir)/$(plat)/$(arch)/$(mode)")
+    add_files("src/main_gui.cpp", "src/physical_key_detector.cpp", 
+              "src/virtual_key_detector.cpp", "src/modifier_key_fixer.cpp")
+    add_linkdirs("lib")
+    add_links("interception")
+    add_syslinks("user32", "shell32")
+    -- Set as Windows GUI application (no console)
+    add_ldflags("/SUBSYSTEM:WINDOWS", "/ENTRY:WinMainCRTStartup", {force = true})
     after_build(function (target)
         local target_dir = path.directory(target:targetfile())
         local dll_file = path.join("lib", "interception.dll")
