@@ -6,7 +6,8 @@ add_includedirs("include")
 -- Main program
 target("escModKey")
     set_kind("binary")
-    add_files("src/main.cpp", "src/physical_key_detector.cpp", "src/virtual_key_detector.cpp")
+    add_files("src/main.cpp", "src/physical_key_detector.cpp", 
+              "src/virtual_key_detector.cpp", "src/modifier_key_fixer.cpp")
     add_linkdirs("lib")
     add_links("interception")
     add_syslinks("user32")
