@@ -1,3 +1,4 @@
+#include "../resources/resource.h"
 #include "modifier_key_fixer.h"
 #include <Windows.h>
 #include <shellapi.h>
@@ -109,7 +110,8 @@ void AddTrayIcon(HWND hwnd) {
   g_nid.uID = ID_TRAY_APP_ICON;
   g_nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
   g_nid.uCallbackMessage = WM_TRAYICON;
-  g_nid.hIcon = LoadIcon(nullptr, IDI_APPLICATION);
+  // Load custom icon from resources
+  g_nid.hIcon = LoadIcon(g_hInstance, MAKEINTRESOURCE(IDI_APP_ICON));
   strcpy_s(g_nid.szTip, "Modifier Key Auto-Fix - Running");
 
   Shell_NotifyIcon(NIM_ADD, &g_nid);

@@ -23,6 +23,9 @@ target("escModKey_gui")
     set_targetdir("$(buildir)/$(plat)/$(arch)/$(mode)")
     add_files("src/main_gui.cpp", "src/physical_key_detector.cpp", 
               "src/virtual_key_detector.cpp", "src/modifier_key_fixer.cpp")
+    -- Add resource file
+    add_files("resources/app.rc")
+    add_includedirs("resources")
     add_linkdirs("lib")
     add_links("interception")
     add_syslinks("user32", "shell32")

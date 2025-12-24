@@ -77,6 +77,11 @@ escModKey/
 ├── lib/                             # 库文件
 │   ├── interception.dll
 │   └── interception.lib
+├── resources/                       # 资源文件
+│   ├── app.rc                       # 资源脚本
+│   ├── resource.h                   # 资源头文件
+│   ├── app_icon.ico                 # 应用图标（需自行添加）
+│   └── README.md                    # 图标说明
 ├── docs/                            # 文档
 │   ├── ARCHITECTURE.md              # 架构设计文档
 │   └── DEVELOPER.md                 # 开发者指南
@@ -113,6 +118,15 @@ escModKey/
 - 统计和配置管理
 
 ## 编译
+
+**重要：编译前需要准备图标文件**
+
+1. 准备一个 .ico 格式的图标文件
+2. 将图标文件命名为 `app_icon.ico`
+3. 放置在 `resources/` 目录下
+4. 参考 `resources/README.md` 了解如何创建图标
+
+然后执行编译：
 
 ```bash
 xmake
