@@ -1,172 +1,184 @@
-# Modifier Key Auto-Fix Tool - User Guide
+# 修饰键自动修复工具 - 用户指南
 
-## What is this tool?
+## 这个工具是什么？
 
-This tool automatically fixes "stuck" modifier keys (Ctrl, Shift, Alt, Win) that remain in a pressed state even after you've physically released them. This commonly happens when using automation software like AutoHotkey or Quicker.
+本工具自动修复"卡住"的修饰键（Ctrl、Shift、Alt、Win），即使你已经物理释放了按键，但它们仍然保持在按下状态。这种情况通常发生在使用 AutoHotkey 或 Quicker 等自动化软件时。
 
-## The Problem
+## 问题描述
 
-When using keyboard automation or key mapping software, modifier keys can sometimes get "stuck" in the virtual pressed state:
+使用键盘自动化或按键映射软件时，修饰键有时会"卡"在虚拟按下状态：
 
-- You run an AutoHotkey script that uses `Alt+X`
-- The script finishes, but the system still thinks Alt is pressed
-- When you press `X` again, it triggers `Alt+X` instead of just `X`
-- You have to manually press the physical Alt key to "unstick" it
+- 运行一个使用 `Alt+X` 的 AutoHotkey 脚本
+- 脚本执行完毕，但系统仍然认为 Alt 处于按下状态
+- 当你再次按下 `X` 时，触发的是 `Alt+X` 而不是单独的 `X`
+- 你必须手动按一次物理 Alt 键才能"解除卡住"
 
-## The Solution
+## 解决方案
 
-This tool monitors both physical and virtual key states in real-time:
+本工具实时监控物理和虚拟按键状态：
 
-1. **Detects** when a modifier key is stuck (virtual pressed, physical released)
-2. **Waits** for a threshold period (1000ms by default) to avoid false positives
-3. **Auto-fixes** when you press any key, by sending a release event for stuck keys
+1. **检测** 修饰键卡住（虚拟按下，物理释放）
+2. **等待** 阈值时间（默认 1000ms）以避免误判
+3. **自动修复** 当你按下任意按键时，为卡住的按键发送释放事件
 
-## Features
+## 功能特性
 
-- ✅ Real-time monitoring of all modifier keys
-- ✅ Distinguishes between left and right keys
-- ✅ Smart detection (avoids interfering with key mapping tools)
-- ✅ Non-intrusive (only fixes when needed)
-- ✅ Statistics tracking
-- ✅ Configurable threshold
+- ✅ 实时监控所有修饰键
+- ✅ 区分左右按键
+- ✅ 智能检测（避免干扰按键映射工具）
+- ✅ 无干扰运行（仅在需要时修复）
+- ✅ 统计追踪
+- ✅ 可配置阈值
+- ✅ 系统托盘模式（GUI 版本）
 
-## Requirements
+## 系统要求
 
-- Windows OS
-- Interception driver installed
-- Administrator privileges
+- Windows 操作系统
+- 已安装 Interception 驱动
+- 管理员权限
 
-## Installation
+## 安装
 
-1. Install the Interception driver
-2. Build the project: `xmake`
-3. Run with administrator privileges: `.\run.ps1`
+1. 安装 Interception 驱动
+2. 编译项目：`xmake`
+3. 以管理员权限运行：`.\run_gui.ps1`（GUI 版本）或 `.\scripts\run.ps1`（控制台版本）
 
-## Usage
+## 使用方法
 
-### Basic Usage
+### GUI 版本（推荐）
 
-1. Run the program with administrator privileges
-2. The program runs in the background, monitoring your keys
-3. When a modifier key gets stuck:
-   - Wait for it to be marked as [STUCK!] (after 1000ms)
-   - Press any key to trigger auto-fix
-   - The stuck key will be automatically released
+1. 以管理员权限运行 `.\run_gui.ps1`
+2. 程序在后台运行，系统托盘显示图标
+3. 右键托盘图标可以：
+   - 暂停/恢复监控
+   - 显示统计信息
+   - 退出程序
+4. 双击托盘图标显示统计信息
+5. 当修复按键时会显示气泡通知
 
-### Understanding the Display
+### 控制台版本
+
+1. 以管理员权限运行程序
+2. 程序在后台监控你的按键
+3. 当修饰键卡住时：
+   - 等待它被标记为 [STUCK!]（1000ms 后）
+   - 按下任意按键触发自动修复
+   - 卡住的按键将自动释放
+4. 按 P 键暂停/恢复监控
+5. 按 ESC 键退出程序
+
+### 理解显示信息
 
 ```
 Left Ctrl   : Physical[RELEASED] Virtual[PRESSED] <-- MISMATCH (1523ms) [STUCK!]
 ```
 
-- **Physical**: Actual hardware key state
-- **Virtual**: System's view of the key state
-- **MISMATCH**: States don't match
-- **Duration**: How long the mismatch has lasted
-- **[STUCK!]**: Key is considered stuck (duration > threshold)
+- **Physical**：实际硬件按键状态
+- **Virtual**：系统视角的按键状态
+- **MISMATCH**：状态不匹配
+- **Duration**：不匹配持续时间
+- **[STUCK!]**：按键被认为卡住（持续时间 > 阈值）
 
-### Status Messages
+### 状态消息
 
-- `All keys normal. Monitoring...` - Everything is working correctly
-- `Stuck keys detected! Press any key to auto-fix.` - One or more keys are stuck
-- `[Auto-Fix Triggered]` - Fix process started
-- `[Fixed] Left Ctrl` - Specific key was fixed
+- `All keys normal. Monitoring...` - 一切正常
+- `Stuck keys detected! Press any key to auto-fix.` - 检测到卡键
+- `[Auto-Fix Triggered]` - 修复过程已启动
+- `[Fixed] Left Ctrl` - 特定按键已修复
 
-## Configuration
+## 配置
 
-Edit `src/main.cpp` to customize:
+编辑 `include/modifier_key_fixer.h` 进行自定义：
 
 ```cpp
-const int MISMATCH_THRESHOLD_MS = 1000;  // Time before considering stuck
-const bool SHOW_FIX_MESSAGES = true;     // Show/hide fix messages
+const int MISMATCH_THRESHOLD_MS = 1000;  // 认为卡住前的等待时间
 ```
 
-- **MISMATCH_THRESHOLD_MS**: Increase if you get false positives, decrease for faster fixes
-- **SHOW_FIX_MESSAGES**: Set to `false` for silent operation
+- **MISMATCH_THRESHOLD_MS**：如果出现误判则增加，如需更快修复则减少
 
-## How It Works
+## 工作原理
 
-### Detection Logic
+### 检测逻辑
 
-1. **Physical Detection**: Uses Interception driver to monitor actual key presses
-2. **Virtual Detection**: Uses Windows API to check system key states
-3. **Mismatch Detection**: Compares physical and virtual states
-4. **Time Tracking**: Records how long a mismatch has lasted
+1. **物理检测**：使用 Interception 驱动监控实际按键
+2. **虚拟检测**：使用 Windows API 检查系统按键状态
+3. **不一致检测**：比较物理和虚拟状态
+4. **时间追踪**：记录不一致持续时间
 
-### Fix Trigger Conditions
+### 修复触发条件
 
-The tool only fixes when ALL conditions are met:
+工具仅在满足所有条件时修复：
 
-1. ✅ A modifier key is stuck (mismatch > threshold)
-2. ✅ You press any key (physical key down event)
-3. ✅ No other physical keys are pressed (avoids interfering with key mapping)
+1. ✅ 修饰键卡住（不一致 > 阈值）
+2. ✅ 你按下任意按键（物理按键按下事件）
+3. ✅ 没有其他物理按键被按下（避免干扰按键映射）
 
-### Smart Protection
+### 智能保护
 
-The tool avoids interfering with:
+工具避免干扰：
 
-- **Normal key presses**: Short mismatches (< 1000ms) are ignored
-- **Key mapping tools**: If you're using Space as Ctrl, it won't interfere
-- **Automation scripts**: Only fixes after scripts finish (threshold delay)
+- **正常按键**：短暂不一致（< 1000ms）被忽略
+- **按键映射工具**：如果你将空格映射为 Ctrl，不会干扰
+- **自动化脚本**：仅在脚本完成后修复（阈值延迟）
 
-## Troubleshooting
+## 故障排除
 
 ### "Failed to create Interception context"
 
-- Ensure Interception driver is installed
-- Run with administrator privileges
-- Check if another program is using Interception
+- 确保已安装 Interception 驱动
+- 以管理员权限运行
+- 检查是否有其他程序正在使用 Interception
 
-### Keys still stuck after fix
+### 修复后按键仍然卡住
 
-- Increase the threshold if fixes happen too early
-- Check if your automation software is continuously sending keys
-- Try manually pressing the stuck key
+- 如果修复发生太早，增加阈值
+- 检查自动化软件是否持续发送按键
+- 尝试手动按下卡住的按键
 
-### False positives (fixing when not needed)
+### 误判（不需要时也修复）
 
-- Increase `MISMATCH_THRESHOLD_MS` to 2000 or higher
-- Check if you're holding keys for extended periods
+- 增加 `MISMATCH_THRESHOLD_MS` 到 2000 或更高
+- 检查是否长时间按住按键
 
-### Fix doesn't trigger
+### 修复未触发
 
-- Make sure the key shows [STUCK!] marker
-- Try pressing a non-modifier key (like a letter)
-- Check that no other physical keys are pressed
+- 确保按键显示 [STUCK!] 标记
+- 尝试按下非修饰键（如字母键）
+- 检查没有其他物理按键被按下
 
-## Statistics
+## 统计信息
 
-When you exit (press ESC), the tool shows:
+退出时（按 ESC 或右键菜单退出），工具显示：
 
-- Total number of fixes performed
-- Breakdown by key (which keys got stuck most often)
+- 执行的修复总次数
+- 按键分类统计（哪些按键最常卡住）
 
-This helps identify problematic scripts or patterns.
+这有助于识别有问题的脚本或模式。
 
-## Tips
+## 使用技巧
 
-1. **Run at startup**: Add to Windows startup for continuous protection
-2. **Monitor patterns**: Check statistics to identify problematic scripts
-3. **Adjust threshold**: Fine-tune based on your usage patterns
-4. **Silent mode**: Set `SHOW_FIX_MESSAGES = false` for background operation
+1. **开机启动**：添加到 Windows 启动项以持续保护
+2. **监控模式**：检查统计信息以识别有问题的脚本
+3. **调整阈值**：根据使用模式微调
+4. **后台运行**：使用 GUI 版本在系统托盘静默运行
 
-## Known Limitations
+## 已知限制
 
-1. **Requires administrator privileges**: Needed for Interception driver
-2. **Windows only**: Uses Windows-specific APIs
-3. **Threshold delay**: 1 second delay before fixing (by design)
-4. **Remote desktop**: May not work correctly in RDP sessions
+1. **需要管理员权限**：Interception 驱动需要
+2. **仅限 Windows**：使用 Windows 特定 API
+3. **阈值延迟**：修复前有 1 秒延迟（设计如此）
+4. **远程桌面**：在 RDP 会话中可能无法正常工作
 
-## Support
+## 支持
 
-If you encounter issues:
+如果遇到问题：
 
-1. Check that Interception driver is properly installed
-2. Verify you're running with administrator privileges
-3. Try adjusting the threshold value
-4. Check the statistics to understand what's being fixed
+1. 检查 Interception 驱动是否正确安装
+2. 验证是否以管理员权限运行
+3. 尝试调整阈值
+4. 检查统计信息以了解正在修复的内容
 
-## License
+## 许可证
 
-See project LICENSE file.
+参见项目 LICENSE 文件。
 

@@ -1,160 +1,197 @@
-# Modifier Key Auto-Fix Tool
+# 修饰键自动修复工具
 
-Automatically fixes "stuck" modifier keys (Ctrl, Shift, Alt, Win) caused by automation software.
+自动修复由自动化软件导致的"卡住"的修饰键（Ctrl、Shift、Alt、Win）。
 
-## The Problem
+## 问题描述
 
-When using keyboard automation tools (AutoHotkey, Quicker, etc.), modifier keys can get stuck in the virtual pressed state even after being physically released, causing unwanted key combinations.
+使用键盘自动化工具（AutoHotkey、Quicker 等）时，修饰键可能会卡在虚拟按下状态，即使物理按键已经释放，导致产生意外的组合键。
 
-**Example:**
-- You run an AutoHotkey script that uses `Alt+X`
-- Script finishes, but Alt remains "pressed" in the system
-- When you press `X`, it triggers `Alt+X` instead of just `X`
-- You must manually press Alt to "unstick" it
+**示例场景：**
+- 运行一个使用 `Alt+X` 的 AutoHotkey 脚本
+- 脚本执行完毕，但系统仍认为 Alt 处于按下状态
+- 当你按下 `X` 时，触发的是 `Alt+X` 而不是单独的 `X`
+- 必须手动按一次 Alt 键才能"解除卡住"
 
-## The Solution
+## 解决方案
 
-This tool monitors both physical and virtual key states in real-time and automatically releases stuck keys when you press any key.
+本工具实时监控物理按键和虚拟按键状态，当检测到按键卡住时自动释放。
 
-## Features
+## 功能特性
 
-- ✅ Real-time monitoring of physical and virtual key states
-- ✅ Smart auto-fix (only when truly stuck, not during normal use)
-- ✅ Protects against false positives (key mapping, scripts, etc.)
-- ✅ Distinguishes between left and right modifier keys
-- ✅ Statistics tracking
-- ✅ Configurable threshold (default: 1000ms)
-- ✅ Non-intrusive operation
+- ✅ 实时监控物理和虚拟按键状态
+- ✅ 智能自动修复（仅在真正卡住时修复，不干扰正常使用）
+- ✅ 防止误判（兼容按键映射工具、脚本等）
+- ✅ 区分左右修饰键
+- ✅ 统计追踪
+- ✅ 可配置阈值（默认：1000ms）
+- ✅ 无干扰运行
+- ✅ 系统托盘模式（GUI 版本）
 
-## Quick Start
+## 快速开始
 
 ```powershell
-# Build
+# 编译
 xmake
 
-# Run (requires administrator privileges)
-.\run.ps1
+# 运行控制台版本（需要管理员权限）
+.\scripts\run.ps1
+
+# 运行 GUI 版本（系统托盘，需要管理员权限）
+.\run_gui.ps1
 ```
 
-**See [USER_GUIDE.md](USER_GUIDE.md) for detailed usage instructions.**
+**详细使用说明请参阅 [USER_GUIDE.md](USER_GUIDE.md)**
 
-## How It Works
+## 工作原理
 
-1. **Monitors** both physical (hardware) and virtual (system) key states
-2. **Detects** when a modifier key is stuck (virtual pressed, physical released)
-3. **Waits** for threshold period (1000ms) to avoid false positives
-4. **Auto-fixes** when you press any key, by sending a release event
+1. **监控** 物理按键（硬件）和虚拟按键（系统）状态
+2. **检测** 修饰键卡住（虚拟按下，物理释放）
+3. **等待** 阈值时间（1000ms）以避免误判
+4. **自动修复** 当你按下任意按键时，发送释放事件
 
-## Requirements
+## 系统要求
 
-- Windows OS
-- Interception driver installed
-- Administrator privileges
-- Visual Studio 2019 or later (for building)
+- Windows 操作系统
+- 已安装 Interception 驱动
+- 管理员权限
+- Visual Studio 2019 或更高版本（用于编译）
 
-## Project Structure
+## 项目结构
 
 ```
 escModKey/
-├── include/                          # Header files
-│   ├── interception.h               # Interception driver API
-│   ├── physical_key_detector.h      # Physical key detector module
-│   └── virtual_key_detector.h       # Virtual key detector module
-├── src/                             # Source files
-│   ├── main.cpp                     # Main auto-fix program
-│   ├── physical_key_detector.cpp    # Physical detector implementation
-│   └── virtual_key_detector.cpp     # Virtual detector implementation
-├── test/                            # Test programs
-│   ├── test_physical_detector.cpp   # Physical detector test
-│   └── test_virtual_detector.cpp    # Virtual detector test
-├── lib/                             # Libraries
+├── include/                          # 头文件
+│   ├── interception.h               # Interception 驱动 API
+│   ├── physical_key_detector.h      # 物理按键检测模块
+│   ├── virtual_key_detector.h       # 虚拟按键检测模块
+│   └── modifier_key_fixer.h         # 修饰键修复核心模块
+├── src/                             # 源文件
+│   ├── main.cpp                     # 主程序（控制台版本）
+│   ├── main_gui.cpp                 # GUI 版本（系统托盘）
+│   ├── physical_key_detector.cpp    # 物理检测器实现
+│   ├── virtual_key_detector.cpp     # 虚拟检测器实现
+│   └── modifier_key_fixer.cpp       # 修复器实现
+├── test/                            # 测试程序
+│   ├── test_physical_detector.cpp   # 物理检测器测试
+│   └── test_virtual_detector.cpp    # 虚拟检测器测试
+├── lib/                             # 库文件
 │   ├── interception.dll
 │   └── interception.lib
-├── USER_GUIDE.md                    # Detailed user guide
-├── xmake.lua                        # Build configuration
-└── run.ps1                          # Run script
+├── docs/                            # 文档
+│   ├── ARCHITECTURE.md              # 架构设计文档
+│   └── DEVELOPER.md                 # 开发者指南
+├── scripts/                         # 辅助脚本
+│   ├── run.ps1                      # 运行控制台版本
+│   ├── run_test.ps1                 # 运行物理检测器测试
+│   └── run_test_virtual.ps1         # 运行虚拟检测器测试
+├── USER_GUIDE.md                    # 用户指南
+├── run_gui.ps1                      # 运行 GUI 版本（主要使用）
+└── xmake.lua                        # 构建配置
 ```
 
-## Modules
+## 核心模块
 
-### PhysicalKeyDetector
+### PhysicalKeyDetector（物理按键检测器）
 
-Hardware-level detection of modifier key states via Interception driver.
-- Cannot be fooled by software key simulation
-- Event-driven, real-time detection
-- Requires administrator privileges
+通过 Interception 驱动进行硬件级别的修饰键状态检测。
+- 无法被软件按键模拟欺骗
+- 事件驱动，实时检测
+- 需要管理员权限
 
-### VirtualKeyDetector
+### VirtualKeyDetector（虚拟按键检测器）
 
-Software-level detection of modifier key states via Windows API.
-- Detects system's view of key states
-- Polling-based (50ms interval)
-- No special privileges required
+通过 Windows API 进行软件级别的修饰键状态检测。
+- 检测系统视角的按键状态
+- 轮询式检测（50ms 间隔）
+- 无需特殊权限
 
-## Building
+### ModifierKeyFixer（修饰键修复器）
+
+核心修复逻辑模块，整合物理和虚拟检测器。
+- 不一致检测和时间追踪
+- 智能修复触发条件判断
+- 统计和配置管理
+
+## 编译
 
 ```bash
 xmake
 ```
 
-This builds:
-- `escModKey.exe` - Main auto-fix program
-- `test_physical_detector.exe` - Physical detector test
-- `test_virtual_detector.exe` - Virtual detector test
+编译产物：
+- `escModKey.exe` - 控制台版本主程序
+- `escModKey_gui.exe` - GUI 版本（系统托盘）
+- `test_physical_detector.exe` - 物理检测器测试
+- `test_virtual_detector.exe` - 虚拟检测器测试
 
-## Running
+## 运行
 
-### Main Program (Auto-Fix)
+### 主程序
+
+**GUI 版本（推荐）：**
 ```powershell
-.\run.ps1
+.\run_gui.ps1
+```
+- 无窗口运行
+- 系统托盘图标
+- 右键菜单（暂停/恢复、显示统计、退出）
+- 双击显示统计信息
+- 气泡通知
+
+**控制台版本：**
+```powershell
+.\scripts\run.ps1
+```
+- 实时显示按键状态
+- 按 P 键暂停/恢复
+- 按 ESC 键退出
+
+### 测试程序
+
+```powershell
+# 测试物理检测器（需要管理员权限）
+.\scripts\run_test.ps1
+
+# 测试虚拟检测器（无需管理员权限）
+.\scripts\run_test_virtual.ps1
 ```
 
-### Test Programs
-```powershell
-# Test physical detector (requires admin)
-.\run_test.ps1
+## 配置
 
-# Test virtual detector (no admin required)
-.\run_test_virtual.ps1
-```
-
-## Configuration
-
-Edit `src/main.cpp`:
+编辑 `include/modifier_key_fixer.h`：
 
 ```cpp
-const int MISMATCH_THRESHOLD_MS = 1000;  // Adjust threshold
-const bool SHOW_FIX_MESSAGES = true;     // Show/hide messages
+const int MISMATCH_THRESHOLD_MS = 1000;  // 调整阈值
 ```
 
-## Use Cases
+## 使用场景
 
-- Fix stuck keys after AutoHotkey scripts
-- Recover from automation software glitches
-- Prevent unwanted key combinations
-- Improve workflow with automation tools
+- 修复 AutoHotkey 脚本执行后的卡键
+- 从自动化软件故障中恢复
+- 防止意外的组合键触发
+- 改善使用自动化工具的工作流程
 
-## Troubleshooting
+## 故障排除
 
 **"Failed to create Interception context"**
-- Install Interception driver
-- Run with administrator privileges
+- 安装 Interception 驱动
+- 以管理员权限运行
 
-**Keys still stuck after fix**
-- Increase threshold value
-- Check if automation software is still running
+**修复后按键仍然卡住**
+- 增加阈值
+- 检查自动化软件是否仍在运行
 
-**False positives**
-- Increase `MISMATCH_THRESHOLD_MS` to 2000+
+**误判（不需要时也修复）**
+- 增加 `MISMATCH_THRESHOLD_MS` 到 2000 以上
 
-See [USER_GUIDE.md](USER_GUIDE.md) for more troubleshooting tips.
+更多故障排除提示请参阅 [USER_GUIDE.md](USER_GUIDE.md)。
 
-## Documentation
+## 文档
 
-- [USER_GUIDE.md](USER_GUIDE.md) - Detailed usage guide
-- [USAGE.md](USAGE.md) - Physical detector API reference
-- [USAGE_VIRTUAL.md](USAGE_VIRTUAL.md) - Virtual detector API reference
+- [USER_GUIDE.md](USER_GUIDE.md) - 详细用户指南
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - 架构设计文档
+- [docs/DEVELOPER.md](docs/DEVELOPER.md) - 开发者指南
 
-## License
+## 许可证
 
-See LICENSE file.
+参见 LICENSE 文件。
