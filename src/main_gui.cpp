@@ -39,15 +39,28 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     if (lParam == WM_RBUTTONUP) {
       ShowContextMenu(hwnd);
     } else if (lParam == WM_LBUTTONDBLCLK) {
-      // Double click - show statistics
+      // Double click - show statistics (summary)
       const auto &stats = g_pFixer->getStatistics();
+      const auto &pStates = g_pFixer->getPhysicalStates();
+
+      // Calculate category totals
+      int ctrlTotal = 0, shiftTotal = 0, altTotal = 0, winTotal = 0;
+      for (const auto &key : pStates.getKeys()) {
+        int count = stats.getFixCount(key.id);
+        if (key.id.find("ctrl") != std::string::npos)
+          ctrlTotal += count;
+        else if (key.id.find("shift") != std::string::npos)
+          shiftTotal += count;
+        else if (key.id.find("alt") != std::string::npos)
+          altTotal += count;
+        else if (key.id.find("win") != std::string::npos)
+          winTotal += count;
+      }
+
       char buffer[256];
-      sprintf_s(buffer,
-                "Total Fixes: %d\nCtrl: %d | Shift: %d | Alt: %d | Win: %d",
-                stats.getTotalFixes(), stats.lctrlFixes() + stats.rctrlFixes(),
-                stats.lshiftFixes() + stats.rshiftFixes(),
-                stats.laltFixes() + stats.raltFixes(),
-                stats.lwinFixes() + stats.rwinFixes());
+      sprintf_s(
+          buffer, "Total Fixes: %d\nCtrl: %d | Shift: %d | Alt: %d | Win: %d",
+          stats.getTotalFixes(), ctrlTotal, shiftTotal, altTotal, winTotal);
       MessageBoxA(nullptr, buffer, "Modifier Key Auto-Fix - Statistics",
                   MB_OK | MB_ICONINFORMATION);
     }
@@ -73,21 +86,24 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
     case ID_TRAY_SHOW_STATS: {
       const auto &stats = g_pFixer->getStatistics();
-      char buffer[512];
-      sprintf_s(buffer,
-                "Total Fixes: %d\n\n"
-                "Left Ctrl: %d\n"
-                "Right Ctrl: %d\n"
-                "Left Shift: %d\n"
-                "Right Shift: %d\n"
-                "Left Alt: %d\n"
-                "Right Alt: %d\n"
-                "Left Win: %d\n"
-                "Right Win: %d",
-                stats.getTotalFixes(), stats.lctrlFixes(), stats.rctrlFixes(),
-                stats.lshiftFixes(), stats.rshiftFixes(), stats.laltFixes(),
-                stats.raltFixes(), stats.lwinFixes(), stats.rwinFixes());
-      MessageBoxA(nullptr, buffer, "Modifier Key Auto-Fix - Statistics",
+      const auto &pStates = g_pFixer->getPhysicalStates();
+
+      // Build statistics string dynamically
+      std::string statsText = "Total Fixes: ";
+      statsText += std::to_string(stats.getTotalFixes());
+      statsText += "\n\n";
+
+      // Add individual key statistics
+      for (const auto &key : pStates.getKeys()) {
+        int count = stats.getFixCount(key.id);
+        statsText += key.name;
+        statsText += ": ";
+        statsText += std::to_string(count);
+        statsText += "\n";
+      }
+
+      MessageBoxA(nullptr, statsText.c_str(),
+                  "Modifier Key Auto-Fix - Statistics",
                   MB_OK | MB_ICONINFORMATION);
       break;
     }

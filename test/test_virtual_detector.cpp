@@ -12,23 +12,15 @@ void displayVirtualKeyStates(const VirtualKeyStates &states) {
   std::cout << "Press ESC to exit" << std::endl;
   std::cout << std::endl;
 
-  auto printKey = [](const char *name, bool pressed) {
-    std::cout << std::setw(12) << std::left << name << ": ";
-    if (pressed) {
+  // Display all monitored keys dynamically
+  for (const auto &key : states.getKeys()) {
+    std::cout << std::setw(12) << std::left << key.name << ": ";
+    if (key.pressed) {
       std::cout << "[PRESSED]" << std::endl;
     } else {
       std::cout << "[RELEASED]" << std::endl;
     }
-  };
-
-  printKey("Left Ctrl", states.lctrl());
-  printKey("Right Ctrl", states.rctrl());
-  printKey("Left Shift", states.lshift());
-  printKey("Right Shift", states.rshift());
-  printKey("Left Alt", states.lalt());
-  printKey("Right Alt", states.ralt());
-  printKey("Left Win", states.lwin());
-  printKey("Right Win", states.rwin());
+  }
 
   std::cout << std::endl;
   std::cout << "Combined: ";

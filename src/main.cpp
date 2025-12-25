@@ -22,40 +22,39 @@ void displayStates(const ModifierKeyFixer &fixer) {
   const auto &vStates = fixer.getVirtualStates();
   const auto &trackers = fixer.getMismatchTrackers();
 
-  auto printKeyComparison = [&fixer](const char *name, bool physical,
-                                     bool virtual_state,
-                                     const MismatchTracker &tracker) {
-    std::cout << std::setw(12) << std::left << name << ": ";
-    std::cout << "Physical[" << (physical ? "PRESSED " : "RELEASED") << "] ";
-    std::cout << "Virtual[" << (virtual_state ? "PRESSED " : "RELEASED") << "]";
+  // Iterate through all monitored keys
+  for (const auto &physKey : pStates.getKeys()) {
+    // Find corresponding virtual key and tracker
+    const VirtualKeyState *virtKey = vStates.findKeyById(physKey.id);
+    const MismatchTracker *tracker = trackers.getTracker(physKey.id);
 
-    if (tracker.isMismatched) {
-      int duration = tracker.getDurationMs();
+    if (!virtKey || !tracker) {
+      continue; // Skip if not found
+    }
+
+    // Display key name
+    std::cout << std::setw(12) << std::left << physKey.name << ": ";
+
+    // Display physical state
+    std::cout << "Physical[" << (physKey.pressed ? "PRESSED " : "RELEASED")
+              << "] ";
+
+    // Display virtual state
+    std::cout << "Virtual[" << (virtKey->pressed ? "PRESSED " : "RELEASED")
+              << "]";
+
+    // Display mismatch info
+    if (tracker->isMismatched) {
+      int duration = tracker->getDurationMs();
       std::cout << " <-- MISMATCH (" << duration << "ms)";
 
-      if (tracker.isStuck(fixer.getThreshold())) {
+      if (tracker->isStuck(fixer.getThreshold())) {
         std::cout << " [STUCK!]";
       }
     }
-    std::cout << std::endl;
-  };
 
-  printKeyComparison("Left Ctrl", pStates.lctrl(), vStates.lctrl(),
-                     trackers.lctrl());
-  printKeyComparison("Right Ctrl", pStates.rctrl(), vStates.rctrl(),
-                     trackers.rctrl());
-  printKeyComparison("Left Shift", pStates.lshift(), vStates.lshift(),
-                     trackers.lshift());
-  printKeyComparison("Right Shift", pStates.rshift(), vStates.rshift(),
-                     trackers.rshift());
-  printKeyComparison("Left Alt", pStates.lalt(), vStates.lalt(),
-                     trackers.lalt());
-  printKeyComparison("Right Alt", pStates.ralt(), vStates.ralt(),
-                     trackers.ralt());
-  printKeyComparison("Left Win", pStates.lwin(), vStates.lwin(),
-                     trackers.lwin());
-  printKeyComparison("Right Win", pStates.rwin(), vStates.rwin(),
-                     trackers.rwin());
+    std::cout << std::endl;
+  }
 
   std::cout << std::endl;
   std::cout << "Status: ";
@@ -179,22 +178,15 @@ int main() {
   const auto &stats = fixer.getStatistics();
   std::cout << "\nFix Statistics:" << std::endl;
   std::cout << "  Total fixes: " << stats.getTotalFixes() << std::endl;
-  if (stats.lctrlFixes() > 0)
-    std::cout << "  Left Ctrl: " << stats.lctrlFixes() << std::endl;
-  if (stats.rctrlFixes() > 0)
-    std::cout << "  Right Ctrl: " << stats.rctrlFixes() << std::endl;
-  if (stats.lshiftFixes() > 0)
-    std::cout << "  Left Shift: " << stats.lshiftFixes() << std::endl;
-  if (stats.rshiftFixes() > 0)
-    std::cout << "  Right Shift: " << stats.rshiftFixes() << std::endl;
-  if (stats.laltFixes() > 0)
-    std::cout << "  Left Alt: " << stats.laltFixes() << std::endl;
-  if (stats.raltFixes() > 0)
-    std::cout << "  Right Alt: " << stats.raltFixes() << std::endl;
-  if (stats.lwinFixes() > 0)
-    std::cout << "  Left Win: " << stats.lwinFixes() << std::endl;
-  if (stats.rwinFixes() > 0)
-    std::cout << "  Right Win: " << stats.rwinFixes() << std::endl;
+
+  // Display individual key statistics
+  const auto &pStates = fixer.getPhysicalStates();
+  for (const auto &key : pStates.getKeys()) {
+    int fixCount = stats.getFixCount(key.id);
+    if (fixCount > 0) {
+      std::cout << "  " << key.name << ": " << fixCount << std::endl;
+    }
+  }
 
   std::cout << "\nProgram exited successfully." << std::endl;
 
