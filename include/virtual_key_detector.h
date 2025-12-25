@@ -27,11 +27,12 @@ public:
   // Initialize with default modifier keys
   void initializeDefaultKeys();
 
-  // Initialize with configuration (Step 5: simple mode)
+  // Initialize with configuration (simple mode: quick toggles only)
   void initializeWithConfig(bool monitorCtrl, bool monitorShift,
                             bool monitorAlt, bool monitorWin);
 
-  // Initialize with full configuration (Step 6: advanced mode)
+  // Initialize with full configuration (advanced mode: with disabled keys and
+  // custom keys)
   void initializeWithConfig(bool monitorCtrl, bool monitorShift,
                             bool monitorAlt, bool monitorWin,
                             const std::vector<std::string> &disabledKeys,
@@ -77,11 +78,12 @@ public:
   // Initialize the detector (resets all states)
   void initialize();
 
-  // Initialize with configuration (Step 5: simple mode)
+  // Initialize with configuration (simple mode: quick toggles only)
   void initializeWithConfig(bool monitorCtrl, bool monitorShift,
                             bool monitorAlt, bool monitorWin);
 
-  // Initialize with full configuration (Step 6: advanced mode)
+  // Initialize with full configuration (advanced mode: with disabled keys and
+  // custom keys)
   void initializeWithConfig(bool monitorCtrl, bool monitorShift,
                             bool monitorAlt, bool monitorWin,
                             const std::vector<std::string> &disabledKeys,
