@@ -152,7 +152,7 @@ ModifierKeyFixer::ModifierKeyFixer()
 
 ModifierKeyFixer::~ModifierKeyFixer() { cleanup(); }
 
-bool ModifierKeyFixer::initialize() {
+bool ModifierKeyFixer::initializeCommon() {
   // Create Interception context
   context_ = interception_create_context();
 
@@ -165,6 +165,14 @@ bool ModifierKeyFixer::initialize() {
       context_, interception_is_keyboard,
       INTERCEPTION_FILTER_KEY_DOWN | INTERCEPTION_FILTER_KEY_UP |
           INTERCEPTION_FILTER_KEY_E0 | INTERCEPTION_FILTER_KEY_E1);
+
+  return true;
+}
+
+bool ModifierKeyFixer::initialize() {
+  if (!initializeCommon()) {
+    return false;
+  }
 
   // Initialize detectors with default keys
   physicalDetector_.initialize();
@@ -182,20 +190,11 @@ bool ModifierKeyFixer::initialize() {
 }
 
 bool ModifierKeyFixer::initialize(const Config &config) {
-  // Create Interception context
-  context_ = interception_create_context();
-
-  if (!context_) {
+  if (!initializeCommon()) {
     return false;
   }
 
-  // Set filter to listen for all keyboard events
-  interception_set_filter(
-      context_, interception_is_keyboard,
-      INTERCEPTION_FILTER_KEY_DOWN | INTERCEPTION_FILTER_KEY_UP |
-          INTERCEPTION_FILTER_KEY_E0 | INTERCEPTION_FILTER_KEY_E1);
-
-  // Initialize detectors with full configuration (Step 6: advanced mode)
+  // Initialize detectors with full configuration
   physicalDetector_.initializeWithConfig(
       config.getMonitorCtrl(), config.getMonitorShift(), config.getMonitorAlt(),
       config.getMonitorWin(), config.getDisabledKeys(), config.getCustomKeys());

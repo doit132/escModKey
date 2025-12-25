@@ -145,6 +145,7 @@ private:
   bool paused_;
 
   // Internal methods
+  bool initializeCommon();
   void updateMismatchTrackers();
   bool shouldCheckForFix(const InterceptionKeyStroke &stroke);
   int fixStuckKeys(InterceptionDevice device);
