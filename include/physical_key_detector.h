@@ -5,6 +5,9 @@
 #include <string>
 #include <vector>
 
+// Forward declaration
+struct CustomKeyConfig;
+
 // Single key state
 struct KeyState {
   std::string name;        // Key name (e.g., "Left Ctrl")
@@ -27,9 +30,15 @@ public:
   // Initialize with default modifier keys
   void initializeDefaultKeys();
 
-  // Initialize with configuration (Step 5)
+  // Initialize with configuration (Step 5: simple mode)
   void initializeWithConfig(bool monitorCtrl, bool monitorShift,
                             bool monitorAlt, bool monitorWin);
+
+  // Initialize with full configuration (Step 6: advanced mode)
+  void initializeWithConfig(bool monitorCtrl, bool monitorShift,
+                            bool monitorAlt, bool monitorWin,
+                            const std::vector<std::string> &disabledKeys,
+                            const std::vector<CustomKeyConfig> &customKeys);
 
   // Get all keys
   const std::vector<KeyState> &getKeys() const { return keys_; }
@@ -74,9 +83,15 @@ public:
   // Initialize the detector (resets all states)
   void initialize();
 
-  // Initialize with configuration (Step 5)
+  // Initialize with configuration (Step 5: simple mode)
   void initializeWithConfig(bool monitorCtrl, bool monitorShift,
                             bool monitorAlt, bool monitorWin);
+
+  // Initialize with full configuration (Step 6: advanced mode)
+  void initializeWithConfig(bool monitorCtrl, bool monitorShift,
+                            bool monitorAlt, bool monitorWin,
+                            const std::vector<std::string> &disabledKeys,
+                            const std::vector<CustomKeyConfig> &customKeys);
 
   // Process a key stroke and update states
   void processKeyStroke(const InterceptionKeyStroke &stroke);

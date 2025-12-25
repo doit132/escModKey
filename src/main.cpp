@@ -85,7 +85,7 @@ int main() {
   std::cout << "Configuration loaded from: " << configPath << std::endl;
   std::cout << "Threshold: " << config.getThresholdMs() << "ms" << std::endl;
 
-  // Print key monitoring configuration (Step 5: now applied)
+  // Print key monitoring configuration (Step 6: full configuration)
   std::cout << "\nKey Monitoring Configuration:" << std::endl;
   std::cout << "  Monitor Ctrl: " << (config.getMonitorCtrl() ? "Yes" : "No")
             << std::endl;
@@ -103,12 +103,17 @@ int main() {
         std::cout << ", ";
       std::cout << config.getDisabledKeys()[i];
     }
-    std::cout << " (not implemented yet)" << std::endl;
+    std::cout << std::endl;
   }
 
   if (!config.getCustomKeys().empty()) {
     std::cout << "  Custom Keys: " << config.getCustomKeys().size()
-              << " defined (not implemented yet)" << std::endl;
+              << " defined" << std::endl;
+    for (const auto &key : config.getCustomKeys()) {
+      std::cout << "    - " << key.name << " (ScanCode: 0x" << std::hex
+                << key.scanCode << std::dec << ", VK: 0x" << std::hex
+                << key.vkCode << std::dec << ")" << std::endl;
+    }
   }
 
   std::cout << std::endl;

@@ -195,13 +195,13 @@ bool ModifierKeyFixer::initialize(const Config &config) {
       INTERCEPTION_FILTER_KEY_DOWN | INTERCEPTION_FILTER_KEY_UP |
           INTERCEPTION_FILTER_KEY_E0 | INTERCEPTION_FILTER_KEY_E1);
 
-  // Initialize detectors with configuration (Step 5: apply simple mode)
+  // Initialize detectors with full configuration (Step 6: advanced mode)
   physicalDetector_.initializeWithConfig(
       config.getMonitorCtrl(), config.getMonitorShift(), config.getMonitorAlt(),
-      config.getMonitorWin());
+      config.getMonitorWin(), config.getDisabledKeys(), config.getCustomKeys());
   virtualDetector_.initializeWithConfig(
       config.getMonitorCtrl(), config.getMonitorShift(), config.getMonitorAlt(),
-      config.getMonitorWin());
+      config.getMonitorWin(), config.getDisabledKeys(), config.getCustomKeys());
 
   // Initialize trackers and statistics based on monitored keys
   std::vector<std::string> keyIds;

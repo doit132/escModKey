@@ -1,4 +1,7 @@
 #include "physical_key_detector.h"
+#include "config.h"
+#include <algorithm>
+#include <cctype>
 
 // Modifier key scan codes (based on actual testing)
 #define SCANCODE_LCTRL 0x1D
@@ -50,6 +53,63 @@ void ModifierKeyStates::initializeWithConfig(bool monitorCtrl,
   if (monitorWin) {
     keys_.emplace_back("Left Win", "lwin", SCANCODE_LWIN, true);
     keys_.emplace_back("Right Win", "rwin", SCANCODE_RWIN, true);
+  }
+}
+
+void ModifierKeyStates::initializeWithConfig(
+    bool monitorCtrl, bool monitorShift, bool monitorAlt, bool monitorWin,
+    const std::vector<std::string> &disabledKeys,
+    const std::vector<CustomKeyConfig> &customKeys) {
+  keys_.clear();
+
+  // Add keys based on configuration
+  if (monitorCtrl) {
+    keys_.emplace_back("Left Ctrl", "lctrl", SCANCODE_LCTRL, false);
+    keys_.emplace_back("Right Ctrl", "rctrl", SCANCODE_RCTRL, true);
+  }
+
+  if (monitorShift) {
+    keys_.emplace_back("Left Shift", "lshift", SCANCODE_LSHIFT, false);
+    keys_.emplace_back("Right Shift", "rshift", SCANCODE_RSHIFT, false);
+  }
+
+  if (monitorAlt) {
+    keys_.emplace_back("Left Alt", "lalt", SCANCODE_LALT, false);
+    keys_.emplace_back("Right Alt", "ralt", SCANCODE_RALT, true);
+  }
+
+  if (monitorWin) {
+    keys_.emplace_back("Left Win", "lwin", SCANCODE_LWIN, true);
+    keys_.emplace_back("Right Win", "rwin", SCANCODE_RWIN, true);
+  }
+
+  // Remove disabled keys (Step 6)
+  for (const auto &disabledId : disabledKeys) {
+    // Convert to lowercase for case-insensitive comparison
+    std::string lowerDisabledId = disabledId;
+    for (char &c : lowerDisabledId) {
+      c = std::tolower(c);
+    }
+
+    // Remove matching keys
+    keys_.erase(std::remove_if(keys_.begin(), keys_.end(),
+                               [&lowerDisabledId](const KeyState &key) {
+                                 return key.id == lowerDisabledId;
+                               }),
+                keys_.end());
+  }
+
+  // Add custom keys (Step 6)
+  for (const auto &customKey : customKeys) {
+    // Generate ID from name (lowercase, no spaces)
+    std::string id = customKey.name;
+    for (char &c : id) {
+      c = std::tolower(c);
+    }
+    id.erase(std::remove(id.begin(), id.end(), ' '), id.end());
+
+    keys_.emplace_back(customKey.name, id, customKey.scanCode,
+                       customKey.needsE0);
   }
 }
 
@@ -155,6 +215,14 @@ void PhysicalKeyDetector::initializeWithConfig(bool monitorCtrl,
                                                bool monitorWin) {
   states_.initializeWithConfig(monitorCtrl, monitorShift, monitorAlt,
                                monitorWin);
+}
+
+void PhysicalKeyDetector::initializeWithConfig(
+    bool monitorCtrl, bool monitorShift, bool monitorAlt, bool monitorWin,
+    const std::vector<std::string> &disabledKeys,
+    const std::vector<CustomKeyConfig> &customKeys) {
+  states_.initializeWithConfig(monitorCtrl, monitorShift, monitorAlt,
+                               monitorWin, disabledKeys, customKeys);
 }
 
 void PhysicalKeyDetector::processKeyStroke(

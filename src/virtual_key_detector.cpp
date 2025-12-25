@@ -1,4 +1,7 @@
 #include "virtual_key_detector.h"
+#include "config.h"
+#include <algorithm>
+#include <cctype>
 
 // VirtualKeyStates implementation
 VirtualKeyStates::VirtualKeyStates() { initializeDefaultKeys(); }
@@ -39,6 +42,62 @@ void VirtualKeyStates::initializeWithConfig(bool monitorCtrl, bool monitorShift,
   if (monitorWin) {
     keys_.emplace_back("Left Win", "lwin", VK_LWIN);
     keys_.emplace_back("Right Win", "rwin", VK_RWIN);
+  }
+}
+
+void VirtualKeyStates::initializeWithConfig(
+    bool monitorCtrl, bool monitorShift, bool monitorAlt, bool monitorWin,
+    const std::vector<std::string> &disabledKeys,
+    const std::vector<CustomKeyConfig> &customKeys) {
+  keys_.clear();
+
+  // Add keys based on configuration
+  if (monitorCtrl) {
+    keys_.emplace_back("Left Ctrl", "lctrl", VK_LCONTROL);
+    keys_.emplace_back("Right Ctrl", "rctrl", VK_RCONTROL);
+  }
+
+  if (monitorShift) {
+    keys_.emplace_back("Left Shift", "lshift", VK_LSHIFT);
+    keys_.emplace_back("Right Shift", "rshift", VK_RSHIFT);
+  }
+
+  if (monitorAlt) {
+    keys_.emplace_back("Left Alt", "lalt", VK_LMENU);
+    keys_.emplace_back("Right Alt", "ralt", VK_RMENU);
+  }
+
+  if (monitorWin) {
+    keys_.emplace_back("Left Win", "lwin", VK_LWIN);
+    keys_.emplace_back("Right Win", "rwin", VK_RWIN);
+  }
+
+  // Remove disabled keys (Step 6)
+  for (const auto &disabledId : disabledKeys) {
+    // Convert to lowercase for case-insensitive comparison
+    std::string lowerDisabledId = disabledId;
+    for (char &c : lowerDisabledId) {
+      c = std::tolower(c);
+    }
+
+    // Remove matching keys
+    keys_.erase(std::remove_if(keys_.begin(), keys_.end(),
+                               [&lowerDisabledId](const VirtualKeyState &key) {
+                                 return key.id == lowerDisabledId;
+                               }),
+                keys_.end());
+  }
+
+  // Add custom keys (Step 6)
+  for (const auto &customKey : customKeys) {
+    // Generate ID from name (lowercase, no spaces)
+    std::string id = customKey.name;
+    for (char &c : id) {
+      c = std::tolower(c);
+    }
+    id.erase(std::remove(id.begin(), id.end(), ' '), id.end());
+
+    keys_.emplace_back(customKey.name, id, customKey.vkCode);
   }
 }
 
@@ -135,6 +194,14 @@ void VirtualKeyDetector::initializeWithConfig(bool monitorCtrl,
                                               bool monitorWin) {
   states_.initializeWithConfig(monitorCtrl, monitorShift, monitorAlt,
                                monitorWin);
+}
+
+void VirtualKeyDetector::initializeWithConfig(
+    bool monitorCtrl, bool monitorShift, bool monitorAlt, bool monitorWin,
+    const std::vector<std::string> &disabledKeys,
+    const std::vector<CustomKeyConfig> &customKeys) {
+  states_.initializeWithConfig(monitorCtrl, monitorShift, monitorAlt,
+                               monitorWin, disabledKeys, customKeys);
 }
 
 void VirtualKeyDetector::update() {

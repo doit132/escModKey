@@ -41,7 +41,11 @@ monitorAlt = true
 monitorWin = true
 
 # Advanced: Disable specific left/right keys
-# 高级：禁用特定的左右键（例如: ["RightWin", "RightAlt"]）
+# 高级：禁用特定的左右键
+# Use lowercase key IDs: lctrl, rctrl, lshift, rshift, lalt, ralt, lwin, rwin
+# 使用小写按键 ID：lctrl, rctrl, lshift, rshift, lalt, ralt, lwin, rwin
+# Example: ["rwin", "ralt"]
+# 示例：["rwin", "ralt"]
 disabledKeys = []
 
 # Advanced: Add custom keys to monitor
