@@ -1,7 +1,7 @@
 #include "physical_key_detector.h"
 #include "config.h"
+#include "string_utils.h"
 #include <algorithm>
-#include <cctype>
 
 // Modifier key scan codes (based on actual testing)
 #define SCANCODE_LCTRL 0x1D
@@ -66,10 +66,7 @@ void ModifierKeyStates::initializeWithConfig(
   // Remove disabled keys
   for (const auto &disabledId : disabledKeys) {
     // Convert to lowercase for case-insensitive comparison
-    std::string lowerDisabledId = disabledId;
-    for (char &c : lowerDisabledId) {
-      c = std::tolower(c);
-    }
+    std::string lowerDisabledId = StringUtils::toLower(disabledId);
 
     // Remove matching keys
     keys_.erase(std::remove_if(keys_.begin(), keys_.end(),
@@ -82,11 +79,7 @@ void ModifierKeyStates::initializeWithConfig(
   // Add custom keys
   for (const auto &customKey : customKeys) {
     // Generate ID from name (lowercase, no spaces)
-    std::string id = customKey.name;
-    for (char &c : id) {
-      c = std::tolower(c);
-    }
-    id.erase(std::remove(id.begin(), id.end(), ' '), id.end());
+    std::string id = StringUtils::generateIdFromName(customKey.name);
 
     keys_.emplace_back(customKey.name, id, customKey.scanCode,
                        customKey.needsE0);
