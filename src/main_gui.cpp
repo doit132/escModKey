@@ -195,6 +195,17 @@ DWORD WINAPI WorkerThread(LPVOID lpParam) {
 // WinMain entry point
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
                    LPSTR lpCmdLine, int nCmdShow) {
+  // Check for single instance using Mutex
+  HANDLE hMutex =
+      CreateMutexA(nullptr, TRUE, "Global\\ModifierKeyAutoFix_SingleInstance");
+  if (GetLastError() == ERROR_ALREADY_EXISTS) {
+    // Another instance is already running, exit silently
+    if (hMutex) {
+      CloseHandle(hMutex);
+    }
+    return 0;
+  }
+
   g_hInstance = hInstance;
 
   // Create and initialize fixer
@@ -208,6 +219,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
                 "1. Interception driver is installed\n"
                 "2. Running with administrator privileges",
                 "Initialization Error", MB_OK | MB_ICONERROR);
+    if (hMutex) {
+      CloseHandle(hMutex);
+    }
     return 1;
   }
 
@@ -224,6 +238,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
   if (!RegisterClassEx(&wc)) {
     MessageBoxA(nullptr, "Failed to register window class", "Error",
                 MB_OK | MB_ICONERROR);
+    if (hMutex) {
+      CloseHandle(hMutex);
+    }
     return 1;
   }
 
@@ -234,6 +251,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
   if (!g_hwnd) {
     MessageBoxA(nullptr, "Failed to create window", "Error",
                 MB_OK | MB_ICONERROR);
+    if (hMutex) {
+      CloseHandle(hMutex);
+    }
     return 1;
   }
 
@@ -255,6 +275,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
   if (hThread) {
     WaitForSingleObject(hThread, 5000);
     CloseHandle(hThread);
+  }
+
+  // Release mutex
+  if (hMutex) {
+    CloseHandle(hMutex);
   }
 
   return (int)msg.wParam;

@@ -20,7 +20,7 @@ target("escModKey")
 -- GUI version (System tray)
 target("escModKey_gui")
     set_kind("binary")
-    set_targetdir("$(buildir)/$(plat)/$(arch)/$(mode)")
+    set_targetdir("$(builddir)/$(plat)/$(arch)/$(mode)")
     add_files("src/main_gui.cpp", "src/physical_key_detector.cpp", 
               "src/virtual_key_detector.cpp", "src/modifier_key_fixer.cpp")
     -- Add resource file
