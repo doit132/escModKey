@@ -166,7 +166,7 @@ bool ModifierKeyFixer::initialize() {
       INTERCEPTION_FILTER_KEY_DOWN | INTERCEPTION_FILTER_KEY_UP |
           INTERCEPTION_FILTER_KEY_E0 | INTERCEPTION_FILTER_KEY_E1);
 
-  // Initialize detectors
+  // Initialize detectors with default keys
   physicalDetector_.initialize();
   virtualDetector_.initialize();
 
@@ -182,10 +182,38 @@ bool ModifierKeyFixer::initialize() {
 }
 
 bool ModifierKeyFixer::initialize(const Config &config) {
-  if (!initialize()) {
+  // Create Interception context
+  context_ = interception_create_context();
+
+  if (!context_) {
     return false;
   }
+
+  // Set filter to listen for all keyboard events
+  interception_set_filter(
+      context_, interception_is_keyboard,
+      INTERCEPTION_FILTER_KEY_DOWN | INTERCEPTION_FILTER_KEY_UP |
+          INTERCEPTION_FILTER_KEY_E0 | INTERCEPTION_FILTER_KEY_E1);
+
+  // Initialize detectors with configuration (Step 5: apply simple mode)
+  physicalDetector_.initializeWithConfig(
+      config.getMonitorCtrl(), config.getMonitorShift(), config.getMonitorAlt(),
+      config.getMonitorWin());
+  virtualDetector_.initializeWithConfig(
+      config.getMonitorCtrl(), config.getMonitorShift(), config.getMonitorAlt(),
+      config.getMonitorWin());
+
+  // Initialize trackers and statistics based on monitored keys
+  std::vector<std::string> keyIds;
+  for (const auto &key : physicalDetector_.getStates().getKeys()) {
+    keyIds.push_back(key.id);
+  }
+  mismatchTrackers_.initializeForKeys(keyIds);
+  stats_.initializeForKeys(keyIds);
+
+  // Apply other configuration settings
   applyConfig(config);
+
   return true;
 }
 

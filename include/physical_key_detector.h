@@ -27,6 +27,10 @@ public:
   // Initialize with default modifier keys
   void initializeDefaultKeys();
 
+  // Initialize with configuration (Step 5)
+  void initializeWithConfig(bool monitorCtrl, bool monitorShift,
+                            bool monitorAlt, bool monitorWin);
+
   // Get all keys
   const std::vector<KeyState> &getKeys() const { return keys_; }
   std::vector<KeyState> &getKeys() { return keys_; }
@@ -69,6 +73,10 @@ public:
 
   // Initialize the detector (resets all states)
   void initialize();
+
+  // Initialize with configuration (Step 5)
+  void initializeWithConfig(bool monitorCtrl, bool monitorShift,
+                            bool monitorAlt, bool monitorWin);
 
   // Process a key stroke and update states
   void processKeyStroke(const InterceptionKeyStroke &stroke);

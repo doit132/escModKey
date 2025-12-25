@@ -24,6 +24,10 @@ public:
   // Initialize with default modifier keys
   void initializeDefaultKeys();
 
+  // Initialize with configuration (Step 5)
+  void initializeWithConfig(bool monitorCtrl, bool monitorShift,
+                            bool monitorAlt, bool monitorWin);
+
   // Get all keys
   const std::vector<VirtualKeyState> &getKeys() const { return keys_; }
   std::vector<VirtualKeyState> &getKeys() { return keys_; }
@@ -63,6 +67,10 @@ public:
 
   // Initialize the detector (resets all states)
   void initialize();
+
+  // Initialize with configuration (Step 5)
+  void initializeWithConfig(bool monitorCtrl, bool monitorShift,
+                            bool monitorAlt, bool monitorWin);
 
   // Update virtual key states (call this periodically)
   void update();

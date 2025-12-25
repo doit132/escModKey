@@ -26,6 +26,33 @@ void ModifierKeyStates::initializeDefaultKeys() {
   keys_.emplace_back("Right Win", "rwin", SCANCODE_RWIN, true);
 }
 
+void ModifierKeyStates::initializeWithConfig(bool monitorCtrl,
+                                             bool monitorShift, bool monitorAlt,
+                                             bool monitorWin) {
+  keys_.clear();
+
+  // Add keys based on configuration
+  if (monitorCtrl) {
+    keys_.emplace_back("Left Ctrl", "lctrl", SCANCODE_LCTRL, false);
+    keys_.emplace_back("Right Ctrl", "rctrl", SCANCODE_RCTRL, true);
+  }
+
+  if (monitorShift) {
+    keys_.emplace_back("Left Shift", "lshift", SCANCODE_LSHIFT, false);
+    keys_.emplace_back("Right Shift", "rshift", SCANCODE_RSHIFT, false);
+  }
+
+  if (monitorAlt) {
+    keys_.emplace_back("Left Alt", "lalt", SCANCODE_LALT, false);
+    keys_.emplace_back("Right Alt", "ralt", SCANCODE_RALT, true);
+  }
+
+  if (monitorWin) {
+    keys_.emplace_back("Left Win", "lwin", SCANCODE_LWIN, true);
+    keys_.emplace_back("Right Win", "rwin", SCANCODE_RWIN, true);
+  }
+}
+
 KeyState *ModifierKeyStates::findKeyById(const std::string &id) {
   for (auto &key : keys_) {
     if (key.id == id) {
@@ -121,6 +148,14 @@ PhysicalKeyDetector::PhysicalKeyDetector() { initialize(); }
 PhysicalKeyDetector::~PhysicalKeyDetector() {}
 
 void PhysicalKeyDetector::initialize() { states_.initializeDefaultKeys(); }
+
+void PhysicalKeyDetector::initializeWithConfig(bool monitorCtrl,
+                                               bool monitorShift,
+                                               bool monitorAlt,
+                                               bool monitorWin) {
+  states_.initializeWithConfig(monitorCtrl, monitorShift, monitorAlt,
+                               monitorWin);
+}
 
 void PhysicalKeyDetector::processKeyStroke(
     const InterceptionKeyStroke &stroke) {

@@ -16,6 +16,32 @@ void VirtualKeyStates::initializeDefaultKeys() {
   keys_.emplace_back("Right Win", "rwin", VK_RWIN);
 }
 
+void VirtualKeyStates::initializeWithConfig(bool monitorCtrl, bool monitorShift,
+                                            bool monitorAlt, bool monitorWin) {
+  keys_.clear();
+
+  // Add keys based on configuration
+  if (monitorCtrl) {
+    keys_.emplace_back("Left Ctrl", "lctrl", VK_LCONTROL);
+    keys_.emplace_back("Right Ctrl", "rctrl", VK_RCONTROL);
+  }
+
+  if (monitorShift) {
+    keys_.emplace_back("Left Shift", "lshift", VK_LSHIFT);
+    keys_.emplace_back("Right Shift", "rshift", VK_RSHIFT);
+  }
+
+  if (monitorAlt) {
+    keys_.emplace_back("Left Alt", "lalt", VK_LMENU);
+    keys_.emplace_back("Right Alt", "ralt", VK_RMENU);
+  }
+
+  if (monitorWin) {
+    keys_.emplace_back("Left Win", "lwin", VK_LWIN);
+    keys_.emplace_back("Right Win", "rwin", VK_RWIN);
+  }
+}
+
 VirtualKeyState *VirtualKeyStates::findKeyById(const std::string &id) {
   for (auto &key : keys_) {
     if (key.id == id) {
@@ -102,6 +128,14 @@ VirtualKeyDetector::VirtualKeyDetector() { initialize(); }
 VirtualKeyDetector::~VirtualKeyDetector() {}
 
 void VirtualKeyDetector::initialize() { states_.initializeDefaultKeys(); }
+
+void VirtualKeyDetector::initializeWithConfig(bool monitorCtrl,
+                                              bool monitorShift,
+                                              bool monitorAlt,
+                                              bool monitorWin) {
+  states_.initializeWithConfig(monitorCtrl, monitorShift, monitorAlt,
+                               monitorWin);
+}
 
 void VirtualKeyDetector::update() {
   // Update all monitored keys
