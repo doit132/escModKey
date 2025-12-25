@@ -20,7 +20,9 @@ struct MismatchTracker {
   bool isStuck(int thresholdMs) const;
 };
 
-// Tracker for all modifier keys (now dynamic)
+// Tracker for all modifier keys (dynamic, supports any number of keys)
+// Automatically tracks mismatch state for all monitored keys
+// Can be initialized with custom key lists
 class ModifierMismatchTrackers {
 public:
   ModifierMismatchTrackers();
@@ -50,7 +52,9 @@ private:
   MismatchTracker emptyTracker_; // For backward compatibility
 };
 
-// Fix statistics (now dynamic)
+// Fix statistics (dynamic, supports any number of keys)
+// Automatically tracks fix counts for all monitored keys
+// Can be initialized with custom key lists
 class FixStatistics {
 public:
   FixStatistics();
@@ -66,6 +70,9 @@ public:
 
   // Get total fixes
   int getTotalFixes() const { return totalFixes_; }
+
+  // Reset all statistics
+  void reset();
 
   // Backward compatibility: access by field name
   int lctrlFixes() const;

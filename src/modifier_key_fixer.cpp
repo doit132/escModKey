@@ -27,10 +27,7 @@ bool MismatchTracker::isStuck(int thresholdMs) const {
 
 // ModifierMismatchTrackers implementation
 ModifierMismatchTrackers::ModifierMismatchTrackers() {
-  // Initialize with default 8 keys
-  std::vector<std::string> defaultKeys = {"lctrl", "rctrl", "lshift", "rshift",
-                                          "lalt",  "ralt",  "lwin",   "rwin"};
-  initializeForKeys(defaultKeys);
+  // Empty constructor, will be initialized by initializeForKeys
 }
 
 void ModifierMismatchTrackers::initializeForKeys(
@@ -105,14 +102,12 @@ const MismatchTracker &ModifierMismatchTrackers::rwin() const {
 
 // FixStatistics implementation
 FixStatistics::FixStatistics() : totalFixes_(0) {
-  // Initialize with default 8 keys
-  std::vector<std::string> defaultKeys = {"lctrl", "rctrl", "lshift", "rshift",
-                                          "lalt",  "ralt",  "lwin",   "rwin"};
-  initializeForKeys(defaultKeys);
+  // Empty constructor, will be initialized by initializeForKeys
 }
 
 void FixStatistics::initializeForKeys(const std::vector<std::string> &keyIds) {
   fixes_.clear();
+  totalFixes_ = 0;
   for (const auto &keyId : keyIds) {
     fixes_[keyId] = 0;
   }
@@ -131,6 +126,13 @@ void FixStatistics::incrementFix(const std::string &keyId) {
 int FixStatistics::getFixCount(const std::string &keyId) const {
   auto it = fixes_.find(keyId);
   return (it != fixes_.end()) ? it->second : 0;
+}
+
+void FixStatistics::reset() {
+  totalFixes_ = 0;
+  for (auto &pair : fixes_) {
+    pair.second = 0;
+  }
 }
 
 // Backward compatibility methods
@@ -167,6 +169,14 @@ bool ModifierKeyFixer::initialize() {
   // Initialize detectors
   physicalDetector_.initialize();
   virtualDetector_.initialize();
+
+  // Initialize trackers and statistics based on monitored keys
+  std::vector<std::string> keyIds;
+  for (const auto &key : physicalDetector_.getStates().getKeys()) {
+    keyIds.push_back(key.id);
+  }
+  mismatchTrackers_.initializeForKeys(keyIds);
+  stats_.initializeForKeys(keyIds);
 
   return true;
 }
