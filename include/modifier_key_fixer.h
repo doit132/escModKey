@@ -6,6 +6,8 @@
 #include "physical_key_detector.h"
 #include "virtual_key_detector.h"
 #include <chrono>
+#include <map>
+#include <string>
 
 // Mismatch tracker for a single key
 struct MismatchTracker {
@@ -18,31 +20,69 @@ struct MismatchTracker {
   bool isStuck(int thresholdMs) const;
 };
 
-// Tracker for all modifier keys
-struct ModifierMismatchTrackers {
-  MismatchTracker lctrl;
-  MismatchTracker rctrl;
-  MismatchTracker lshift;
-  MismatchTracker rshift;
-  MismatchTracker lalt;
-  MismatchTracker ralt;
-  MismatchTracker lwin;
-  MismatchTracker rwin;
+// Tracker for all modifier keys (now dynamic)
+class ModifierMismatchTrackers {
+public:
+  ModifierMismatchTrackers();
 
+  // Initialize trackers for given key IDs
+  void initializeForKeys(const std::vector<std::string> &keyIds);
+
+  // Get tracker by key ID
+  MismatchTracker *getTracker(const std::string &keyId);
+  const MismatchTracker *getTracker(const std::string &keyId) const;
+
+  // Check if any key is stuck
   bool hasAnyStuck(int thresholdMs) const;
+
+  // Backward compatibility: access by field name
+  const MismatchTracker &lctrl() const;
+  const MismatchTracker &rctrl() const;
+  const MismatchTracker &lshift() const;
+  const MismatchTracker &rshift() const;
+  const MismatchTracker &lalt() const;
+  const MismatchTracker &ralt() const;
+  const MismatchTracker &lwin() const;
+  const MismatchTracker &rwin() const;
+
+private:
+  std::map<std::string, MismatchTracker> trackers_;
+  MismatchTracker emptyTracker_; // For backward compatibility
 };
 
-// Fix statistics
-struct FixStatistics {
-  int totalFixes = 0;
-  int lctrlFixes = 0;
-  int rctrlFixes = 0;
-  int lshiftFixes = 0;
-  int rshiftFixes = 0;
-  int laltFixes = 0;
-  int raltFixes = 0;
-  int lwinFixes = 0;
-  int rwinFixes = 0;
+// Fix statistics (now dynamic)
+class FixStatistics {
+public:
+  FixStatistics();
+
+  // Initialize statistics for given key IDs
+  void initializeForKeys(const std::vector<std::string> &keyIds);
+
+  // Increment fix count for a key
+  void incrementFix(const std::string &keyId);
+
+  // Get fix count for a key
+  int getFixCount(const std::string &keyId) const;
+
+  // Get total fixes
+  int getTotalFixes() const { return totalFixes_; }
+
+  // Backward compatibility: access by field name
+  int lctrlFixes() const;
+  int rctrlFixes() const;
+  int lshiftFixes() const;
+  int rshiftFixes() const;
+  int laltFixes() const;
+  int raltFixes() const;
+  int lwinFixes() const;
+  int rwinFixes() const;
+
+  // Get all fix counts
+  const std::map<std::string, int> &getAllFixes() const { return fixes_; }
+
+private:
+  int totalFixes_;
+  std::map<std::string, int> fixes_;
 };
 
 // Main fixer class

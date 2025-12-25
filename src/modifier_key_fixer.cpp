@@ -26,12 +26,122 @@ bool MismatchTracker::isStuck(int thresholdMs) const {
 }
 
 // ModifierMismatchTrackers implementation
-bool ModifierMismatchTrackers::hasAnyStuck(int thresholdMs) const {
-  return lctrl.isStuck(thresholdMs) || rctrl.isStuck(thresholdMs) ||
-         lshift.isStuck(thresholdMs) || rshift.isStuck(thresholdMs) ||
-         lalt.isStuck(thresholdMs) || ralt.isStuck(thresholdMs) ||
-         lwin.isStuck(thresholdMs) || rwin.isStuck(thresholdMs);
+ModifierMismatchTrackers::ModifierMismatchTrackers() {
+  // Initialize with default 8 keys
+  std::vector<std::string> defaultKeys = {"lctrl", "rctrl", "lshift", "rshift",
+                                          "lalt",  "ralt",  "lwin",   "rwin"};
+  initializeForKeys(defaultKeys);
 }
+
+void ModifierMismatchTrackers::initializeForKeys(
+    const std::vector<std::string> &keyIds) {
+  trackers_.clear();
+  for (const auto &keyId : keyIds) {
+    trackers_[keyId] = MismatchTracker();
+  }
+}
+
+MismatchTracker *
+ModifierMismatchTrackers::getTracker(const std::string &keyId) {
+  auto it = trackers_.find(keyId);
+  return (it != trackers_.end()) ? &it->second : nullptr;
+}
+
+const MismatchTracker *
+ModifierMismatchTrackers::getTracker(const std::string &keyId) const {
+  auto it = trackers_.find(keyId);
+  return (it != trackers_.end()) ? &it->second : nullptr;
+}
+
+bool ModifierMismatchTrackers::hasAnyStuck(int thresholdMs) const {
+  for (const auto &pair : trackers_) {
+    if (pair.second.isStuck(thresholdMs)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// Backward compatibility methods
+const MismatchTracker &ModifierMismatchTrackers::lctrl() const {
+  const MismatchTracker *tracker = getTracker("lctrl");
+  return tracker ? *tracker : emptyTracker_;
+}
+
+const MismatchTracker &ModifierMismatchTrackers::rctrl() const {
+  const MismatchTracker *tracker = getTracker("rctrl");
+  return tracker ? *tracker : emptyTracker_;
+}
+
+const MismatchTracker &ModifierMismatchTrackers::lshift() const {
+  const MismatchTracker *tracker = getTracker("lshift");
+  return tracker ? *tracker : emptyTracker_;
+}
+
+const MismatchTracker &ModifierMismatchTrackers::rshift() const {
+  const MismatchTracker *tracker = getTracker("rshift");
+  return tracker ? *tracker : emptyTracker_;
+}
+
+const MismatchTracker &ModifierMismatchTrackers::lalt() const {
+  const MismatchTracker *tracker = getTracker("lalt");
+  return tracker ? *tracker : emptyTracker_;
+}
+
+const MismatchTracker &ModifierMismatchTrackers::ralt() const {
+  const MismatchTracker *tracker = getTracker("ralt");
+  return tracker ? *tracker : emptyTracker_;
+}
+
+const MismatchTracker &ModifierMismatchTrackers::lwin() const {
+  const MismatchTracker *tracker = getTracker("lwin");
+  return tracker ? *tracker : emptyTracker_;
+}
+
+const MismatchTracker &ModifierMismatchTrackers::rwin() const {
+  const MismatchTracker *tracker = getTracker("rwin");
+  return tracker ? *tracker : emptyTracker_;
+}
+
+// FixStatistics implementation
+FixStatistics::FixStatistics() : totalFixes_(0) {
+  // Initialize with default 8 keys
+  std::vector<std::string> defaultKeys = {"lctrl", "rctrl", "lshift", "rshift",
+                                          "lalt",  "ralt",  "lwin",   "rwin"};
+  initializeForKeys(defaultKeys);
+}
+
+void FixStatistics::initializeForKeys(const std::vector<std::string> &keyIds) {
+  fixes_.clear();
+  for (const auto &keyId : keyIds) {
+    fixes_[keyId] = 0;
+  }
+}
+
+void FixStatistics::incrementFix(const std::string &keyId) {
+  totalFixes_++;
+  auto it = fixes_.find(keyId);
+  if (it != fixes_.end()) {
+    it->second++;
+  } else {
+    fixes_[keyId] = 1;
+  }
+}
+
+int FixStatistics::getFixCount(const std::string &keyId) const {
+  auto it = fixes_.find(keyId);
+  return (it != fixes_.end()) ? it->second : 0;
+}
+
+// Backward compatibility methods
+int FixStatistics::lctrlFixes() const { return getFixCount("lctrl"); }
+int FixStatistics::rctrlFixes() const { return getFixCount("rctrl"); }
+int FixStatistics::lshiftFixes() const { return getFixCount("lshift"); }
+int FixStatistics::rshiftFixes() const { return getFixCount("rshift"); }
+int FixStatistics::laltFixes() const { return getFixCount("lalt"); }
+int FixStatistics::raltFixes() const { return getFixCount("ralt"); }
+int FixStatistics::lwinFixes() const { return getFixCount("lwin"); }
+int FixStatistics::rwinFixes() const { return getFixCount("rwin"); }
 
 // ModifierKeyFixer implementation
 ModifierKeyFixer::ModifierKeyFixer()
@@ -156,23 +266,27 @@ void ModifierKeyFixer::updateMismatchTrackers() {
   const auto &physical = physicalDetector_.getStates();
   const auto &virtual_states = virtualDetector_.getStates();
 
-  auto checkKey = [](MismatchTracker &tracker, bool physical,
-                     bool virtual_state) {
-    if (!physical && virtual_state) {
-      tracker.start();
-    } else {
-      tracker.reset();
+  // Iterate through all physical keys
+  for (const auto &physKey : physical.getKeys()) {
+    // Find corresponding virtual key
+    const VirtualKeyState *virtKey = virtual_states.findKeyById(physKey.id);
+    if (!virtKey) {
+      continue;
     }
-  };
 
-  checkKey(mismatchTrackers_.lctrl, physical.lctrl, virtual_states.lctrl);
-  checkKey(mismatchTrackers_.rctrl, physical.rctrl, virtual_states.rctrl);
-  checkKey(mismatchTrackers_.lshift, physical.lshift, virtual_states.lshift);
-  checkKey(mismatchTrackers_.rshift, physical.rshift, virtual_states.rshift);
-  checkKey(mismatchTrackers_.lalt, physical.lalt, virtual_states.lalt);
-  checkKey(mismatchTrackers_.ralt, physical.ralt, virtual_states.ralt);
-  checkKey(mismatchTrackers_.lwin, physical.lwin, virtual_states.lwin);
-  checkKey(mismatchTrackers_.rwin, physical.rwin, virtual_states.rwin);
+    // Get tracker for this key
+    MismatchTracker *tracker = mismatchTrackers_.getTracker(physKey.id);
+    if (!tracker) {
+      continue;
+    }
+
+    // Check mismatch: physical released but virtual pressed
+    if (!physKey.pressed && virtKey->pressed) {
+      tracker->start();
+    } else {
+      tracker->reset();
+    }
+  }
 }
 
 bool ModifierKeyFixer::shouldCheckForFix(const InterceptionKeyStroke &stroke) {
@@ -196,73 +310,28 @@ bool ModifierKeyFixer::shouldCheckForFix(const InterceptionKeyStroke &stroke) {
 
 int ModifierKeyFixer::fixStuckKeys(InterceptionDevice device) {
   int fixedCount = 0;
+  const auto &physical = physicalDetector_.getStates();
 
-  if (mismatchTrackers_.lctrl.isStuck(thresholdMs_)) {
-    sendKeyRelease(device, 0x1D, false);
-    fixedCount++;
-    stats_.lctrlFixes++;
-    if (showMessages_)
-      std::cout << "  [Fixed] Left Ctrl" << std::endl;
-  }
+  // Iterate through all physical keys
+  for (const auto &key : physical.getKeys()) {
+    const MismatchTracker *tracker = mismatchTrackers_.getTracker(key.id);
+    if (!tracker || !tracker->isStuck(thresholdMs_)) {
+      continue;
+    }
 
-  if (mismatchTrackers_.rctrl.isStuck(thresholdMs_)) {
-    sendKeyRelease(device, 0x1D, true);
+    // Send release event for this key
+    sendKeyRelease(device, key.scanCode, key.needsE0);
     fixedCount++;
-    stats_.rctrlFixes++;
-    if (showMessages_)
-      std::cout << "  [Fixed] Right Ctrl" << std::endl;
-  }
 
-  if (mismatchTrackers_.lshift.isStuck(thresholdMs_)) {
-    sendKeyRelease(device, 0x2A, false);
-    fixedCount++;
-    stats_.lshiftFixes++;
-    if (showMessages_)
-      std::cout << "  [Fixed] Left Shift" << std::endl;
-  }
+    // Update statistics
+    stats_.incrementFix(key.id);
 
-  if (mismatchTrackers_.rshift.isStuck(thresholdMs_)) {
-    sendKeyRelease(device, 0x36, false);
-    fixedCount++;
-    stats_.rshiftFixes++;
-    if (showMessages_)
-      std::cout << "  [Fixed] Right Shift" << std::endl;
-  }
-
-  if (mismatchTrackers_.lalt.isStuck(thresholdMs_)) {
-    sendKeyRelease(device, 0x38, false);
-    fixedCount++;
-    stats_.laltFixes++;
-    if (showMessages_)
-      std::cout << "  [Fixed] Left Alt" << std::endl;
-  }
-
-  if (mismatchTrackers_.ralt.isStuck(thresholdMs_)) {
-    sendKeyRelease(device, 0x38, true);
-    fixedCount++;
-    stats_.raltFixes++;
-    if (showMessages_)
-      std::cout << "  [Fixed] Right Alt" << std::endl;
-  }
-
-  if (mismatchTrackers_.lwin.isStuck(thresholdMs_)) {
-    sendKeyRelease(device, 0x5B, true);
-    fixedCount++;
-    stats_.lwinFixes++;
-    if (showMessages_)
-      std::cout << "  [Fixed] Left Win" << std::endl;
-  }
-
-  if (mismatchTrackers_.rwin.isStuck(thresholdMs_)) {
-    sendKeyRelease(device, 0x5C, true);
-    fixedCount++;
-    stats_.rwinFixes++;
-    if (showMessages_)
-      std::cout << "  [Fixed] Right Win" << std::endl;
+    if (showMessages_) {
+      std::cout << "  [Fixed] " << key.name << std::endl;
+    }
   }
 
   if (fixedCount > 0) {
-    stats_.totalFixes += fixedCount;
     Sleep(20);
     virtualDetector_.update();
   }
@@ -289,9 +358,11 @@ bool ModifierKeyFixer::hasOtherPhysicalKeyPressed(
     const InterceptionKeyStroke &stroke) {
   const auto &physical = physicalDetector_.getStates();
 
-  if (physical.lctrl || physical.rctrl || physical.lshift || physical.rshift ||
-      physical.lalt || physical.ralt || physical.lwin || physical.rwin) {
-    return true;
+  // Check if any monitored key is pressed
+  for (const auto &key : physical.getKeys()) {
+    if (key.pressed) {
+      return true;
+    }
   }
 
   return false;

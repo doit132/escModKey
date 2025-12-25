@@ -22,14 +22,14 @@ void displayModifierStates(const ModifierKeyStates &states) {
     }
   };
 
-  printKey("Left Ctrl", states.lctrl);
-  printKey("Right Ctrl", states.rctrl);
-  printKey("Left Shift", states.lshift);
-  printKey("Right Shift", states.rshift);
-  printKey("Left Alt", states.lalt);
-  printKey("Right Alt", states.ralt);
-  printKey("Left Win", states.lwin);
-  printKey("Right Win", states.rwin);
+  printKey("Left Ctrl", states.lctrl());
+  printKey("Right Ctrl", states.rctrl());
+  printKey("Left Shift", states.lshift());
+  printKey("Right Shift", states.rshift());
+  printKey("Left Alt", states.lalt());
+  printKey("Right Alt", states.ralt());
+  printKey("Left Win", states.lwin());
+  printKey("Right Win", states.rwin());
 
   std::cout << std::endl;
   std::cout << "Combined: ";

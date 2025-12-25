@@ -11,7 +11,8 @@ void displayStates(const ModifierKeyFixer &fixer) {
 
   std::cout << "=== Modifier Key Auto-Fix Monitor ===" << std::endl;
   std::cout << "Threshold: " << fixer.getThreshold() << "ms | ";
-  std::cout << "Total Fixes: " << fixer.getStatistics().totalFixes << " | ";
+  std::cout << "Total Fixes: " << fixer.getStatistics().getTotalFixes()
+            << " | ";
   std::cout << "Status: " << (fixer.isPaused() ? "PAUSED" : "RUNNING")
             << std::endl;
   std::cout << "Press ESC to exit | Press P to pause/resume" << std::endl;
@@ -39,17 +40,22 @@ void displayStates(const ModifierKeyFixer &fixer) {
     std::cout << std::endl;
   };
 
-  printKeyComparison("Left Ctrl", pStates.lctrl, vStates.lctrl, trackers.lctrl);
-  printKeyComparison("Right Ctrl", pStates.rctrl, vStates.rctrl,
-                     trackers.rctrl);
-  printKeyComparison("Left Shift", pStates.lshift, vStates.lshift,
-                     trackers.lshift);
-  printKeyComparison("Right Shift", pStates.rshift, vStates.rshift,
-                     trackers.rshift);
-  printKeyComparison("Left Alt", pStates.lalt, vStates.lalt, trackers.lalt);
-  printKeyComparison("Right Alt", pStates.ralt, vStates.ralt, trackers.ralt);
-  printKeyComparison("Left Win", pStates.lwin, vStates.lwin, trackers.lwin);
-  printKeyComparison("Right Win", pStates.rwin, vStates.rwin, trackers.rwin);
+  printKeyComparison("Left Ctrl", pStates.lctrl(), vStates.lctrl(),
+                     trackers.lctrl());
+  printKeyComparison("Right Ctrl", pStates.rctrl(), vStates.rctrl(),
+                     trackers.rctrl());
+  printKeyComparison("Left Shift", pStates.lshift(), vStates.lshift(),
+                     trackers.lshift());
+  printKeyComparison("Right Shift", pStates.rshift(), vStates.rshift(),
+                     trackers.rshift());
+  printKeyComparison("Left Alt", pStates.lalt(), vStates.lalt(),
+                     trackers.lalt());
+  printKeyComparison("Right Alt", pStates.ralt(), vStates.ralt(),
+                     trackers.ralt());
+  printKeyComparison("Left Win", pStates.lwin(), vStates.lwin(),
+                     trackers.lwin());
+  printKeyComparison("Right Win", pStates.rwin(), vStates.rwin(),
+                     trackers.rwin());
 
   std::cout << std::endl;
   std::cout << "Status: ";
@@ -152,10 +158,10 @@ int main() {
 
     // Update display if any key is mismatched
     const auto &trackers = fixer.getMismatchTrackers();
-    if (trackers.lctrl.isMismatched || trackers.rctrl.isMismatched ||
-        trackers.lshift.isMismatched || trackers.rshift.isMismatched ||
-        trackers.lalt.isMismatched || trackers.ralt.isMismatched ||
-        trackers.lwin.isMismatched || trackers.rwin.isMismatched) {
+    if (trackers.lctrl().isMismatched || trackers.rctrl().isMismatched ||
+        trackers.lshift().isMismatched || trackers.rshift().isMismatched ||
+        trackers.lalt().isMismatched || trackers.ralt().isMismatched ||
+        trackers.lwin().isMismatched || trackers.rwin().isMismatched) {
       stateChanged = true;
     }
 
@@ -172,23 +178,23 @@ int main() {
 
   const auto &stats = fixer.getStatistics();
   std::cout << "\nFix Statistics:" << std::endl;
-  std::cout << "  Total fixes: " << stats.totalFixes << std::endl;
-  if (stats.lctrlFixes > 0)
-    std::cout << "  Left Ctrl: " << stats.lctrlFixes << std::endl;
-  if (stats.rctrlFixes > 0)
-    std::cout << "  Right Ctrl: " << stats.rctrlFixes << std::endl;
-  if (stats.lshiftFixes > 0)
-    std::cout << "  Left Shift: " << stats.lshiftFixes << std::endl;
-  if (stats.rshiftFixes > 0)
-    std::cout << "  Right Shift: " << stats.rshiftFixes << std::endl;
-  if (stats.laltFixes > 0)
-    std::cout << "  Left Alt: " << stats.laltFixes << std::endl;
-  if (stats.raltFixes > 0)
-    std::cout << "  Right Alt: " << stats.raltFixes << std::endl;
-  if (stats.lwinFixes > 0)
-    std::cout << "  Left Win: " << stats.lwinFixes << std::endl;
-  if (stats.rwinFixes > 0)
-    std::cout << "  Right Win: " << stats.rwinFixes << std::endl;
+  std::cout << "  Total fixes: " << stats.getTotalFixes() << std::endl;
+  if (stats.lctrlFixes() > 0)
+    std::cout << "  Left Ctrl: " << stats.lctrlFixes() << std::endl;
+  if (stats.rctrlFixes() > 0)
+    std::cout << "  Right Ctrl: " << stats.rctrlFixes() << std::endl;
+  if (stats.lshiftFixes() > 0)
+    std::cout << "  Left Shift: " << stats.lshiftFixes() << std::endl;
+  if (stats.rshiftFixes() > 0)
+    std::cout << "  Right Shift: " << stats.rshiftFixes() << std::endl;
+  if (stats.laltFixes() > 0)
+    std::cout << "  Left Alt: " << stats.laltFixes() << std::endl;
+  if (stats.raltFixes() > 0)
+    std::cout << "  Right Alt: " << stats.raltFixes() << std::endl;
+  if (stats.lwinFixes() > 0)
+    std::cout << "  Left Win: " << stats.lwinFixes() << std::endl;
+  if (stats.rwinFixes() > 0)
+    std::cout << "  Right Win: " << stats.rwinFixes() << std::endl;
 
   std::cout << "\nProgram exited successfully." << std::endl;
 

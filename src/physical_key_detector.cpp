@@ -10,11 +10,117 @@
 #define SCANCODE_LWIN 0x5B // with E0 flag
 #define SCANCODE_RWIN 0x5C // with E0 flag
 
+// ModifierKeyStates implementation
+ModifierKeyStates::ModifierKeyStates() { initializeDefaultKeys(); }
+
+void ModifierKeyStates::initializeDefaultKeys() {
+  keys_.clear();
+  // Add default 8 modifier keys
+  keys_.emplace_back("Left Ctrl", "lctrl", SCANCODE_LCTRL, false);
+  keys_.emplace_back("Right Ctrl", "rctrl", SCANCODE_RCTRL, true);
+  keys_.emplace_back("Left Shift", "lshift", SCANCODE_LSHIFT, false);
+  keys_.emplace_back("Right Shift", "rshift", SCANCODE_RSHIFT, false);
+  keys_.emplace_back("Left Alt", "lalt", SCANCODE_LALT, false);
+  keys_.emplace_back("Right Alt", "ralt", SCANCODE_RALT, true);
+  keys_.emplace_back("Left Win", "lwin", SCANCODE_LWIN, true);
+  keys_.emplace_back("Right Win", "rwin", SCANCODE_RWIN, true);
+}
+
+KeyState *ModifierKeyStates::findKeyById(const std::string &id) {
+  for (auto &key : keys_) {
+    if (key.id == id) {
+      return &key;
+    }
+  }
+  return nullptr;
+}
+
+const KeyState *ModifierKeyStates::findKeyById(const std::string &id) const {
+  for (const auto &key : keys_) {
+    if (key.id == id) {
+      return &key;
+    }
+  }
+  return nullptr;
+}
+
+KeyState *ModifierKeyStates::findKeyByScanCode(unsigned short scanCode,
+                                               bool needsE0) {
+  for (auto &key : keys_) {
+    if (key.scanCode == scanCode && key.needsE0 == needsE0) {
+      return &key;
+    }
+  }
+  return nullptr;
+}
+
+// Backward compatibility methods
+bool ModifierKeyStates::lctrl() const {
+  const KeyState *key = findKeyById("lctrl");
+  return key ? key->pressed : false;
+}
+
+bool ModifierKeyStates::rctrl() const {
+  const KeyState *key = findKeyById("rctrl");
+  return key ? key->pressed : false;
+}
+
+bool ModifierKeyStates::lshift() const {
+  const KeyState *key = findKeyById("lshift");
+  return key ? key->pressed : false;
+}
+
+bool ModifierKeyStates::rshift() const {
+  const KeyState *key = findKeyById("rshift");
+  return key ? key->pressed : false;
+}
+
+bool ModifierKeyStates::lalt() const {
+  const KeyState *key = findKeyById("lalt");
+  return key ? key->pressed : false;
+}
+
+bool ModifierKeyStates::ralt() const {
+  const KeyState *key = findKeyById("ralt");
+  return key ? key->pressed : false;
+}
+
+bool ModifierKeyStates::lwin() const {
+  const KeyState *key = findKeyById("lwin");
+  return key ? key->pressed : false;
+}
+
+bool ModifierKeyStates::rwin() const {
+  const KeyState *key = findKeyById("rwin");
+  return key ? key->pressed : false;
+}
+
+bool ModifierKeyStates::anyCtrl() const { return lctrl() || rctrl(); }
+
+bool ModifierKeyStates::anyShift() const { return lshift() || rshift(); }
+
+bool ModifierKeyStates::anyAlt() const { return lalt() || ralt(); }
+
+bool ModifierKeyStates::anyWin() const { return lwin() || rwin(); }
+
+bool ModifierKeyStates::operator!=(const ModifierKeyStates &other) const {
+  if (keys_.size() != other.keys_.size()) {
+    return true;
+  }
+  for (size_t i = 0; i < keys_.size(); ++i) {
+    if (keys_[i].pressed != other.keys_[i].pressed) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// PhysicalKeyDetector implementation
 PhysicalKeyDetector::PhysicalKeyDetector() { initialize(); }
 
 PhysicalKeyDetector::~PhysicalKeyDetector() {}
 
-void PhysicalKeyDetector::initialize() { states_ = ModifierKeyStates(); }
+void PhysicalKeyDetector::initialize() { states_.initializeDefaultKeys(); }
 
 void PhysicalKeyDetector::processKeyStroke(
     const InterceptionKeyStroke &stroke) {
@@ -25,17 +131,14 @@ void PhysicalKeyDetector::processKeyStroke(
 
 bool PhysicalKeyDetector::isModifierKey(
     const InterceptionKeyStroke &stroke) const {
-  switch (stroke.code) {
-  case SCANCODE_LCTRL:
-  case SCANCODE_LSHIFT:
-  case SCANCODE_RSHIFT:
-  case SCANCODE_LALT:
-  case SCANCODE_LWIN:
-  case SCANCODE_RWIN:
-    return true;
-  default:
-    return false;
+  bool isE0 = stroke.state & INTERCEPTION_KEY_E0;
+  // Check if any monitored key matches this scan code and E0 flag
+  for (const auto &key : states_.getKeys()) {
+    if (key.scanCode == stroke.code && key.needsE0 == isE0) {
+      return true;
+    }
   }
+  return false;
 }
 
 void PhysicalKeyDetector::updateModifierState(
@@ -43,36 +146,9 @@ void PhysicalKeyDetector::updateModifierState(
   bool isPressed = !(stroke.state & INTERCEPTION_KEY_UP);
   bool isE0 = stroke.state & INTERCEPTION_KEY_E0;
 
-  switch (stroke.code) {
-  case SCANCODE_LCTRL:
-    if (isE0) {
-      states_.rctrl = isPressed;
-    } else {
-      states_.lctrl = isPressed;
-    }
-    break;
-  case SCANCODE_LSHIFT:
-    states_.lshift = isPressed;
-    break;
-  case SCANCODE_RSHIFT:
-    states_.rshift = isPressed;
-    break;
-  case SCANCODE_LALT:
-    if (isE0) {
-      states_.ralt = isPressed;
-    } else {
-      states_.lalt = isPressed;
-    }
-    break;
-  case SCANCODE_LWIN:
-    if (isE0) {
-      states_.lwin = isPressed;
-    }
-    break;
-  case SCANCODE_RWIN:
-    if (isE0) {
-      states_.rwin = isPressed;
-    }
-    break;
+  // Find the key and update its state
+  KeyState *key = states_.findKeyByScanCode(stroke.code, isE0);
+  if (key) {
+    key->pressed = isPressed;
   }
 }

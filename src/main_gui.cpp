@@ -42,11 +42,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
       // Double click - show statistics
       const auto &stats = g_pFixer->getStatistics();
       char buffer[256];
-      sprintf_s(
-          buffer, "Total Fixes: %d\nCtrl: %d | Shift: %d | Alt: %d | Win: %d",
-          stats.totalFixes, stats.lctrlFixes + stats.rctrlFixes,
-          stats.lshiftFixes + stats.rshiftFixes,
-          stats.laltFixes + stats.raltFixes, stats.lwinFixes + stats.rwinFixes);
+      sprintf_s(buffer,
+                "Total Fixes: %d\nCtrl: %d | Shift: %d | Alt: %d | Win: %d",
+                stats.getTotalFixes(), stats.lctrlFixes() + stats.rctrlFixes(),
+                stats.lshiftFixes() + stats.rshiftFixes(),
+                stats.laltFixes() + stats.raltFixes(),
+                stats.lwinFixes() + stats.rwinFixes());
       MessageBoxA(nullptr, buffer, "Modifier Key Auto-Fix - Statistics",
                   MB_OK | MB_ICONINFORMATION);
     }
@@ -83,9 +84,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
                 "Right Alt: %d\n"
                 "Left Win: %d\n"
                 "Right Win: %d",
-                stats.totalFixes, stats.lctrlFixes, stats.rctrlFixes,
-                stats.lshiftFixes, stats.rshiftFixes, stats.laltFixes,
-                stats.raltFixes, stats.lwinFixes, stats.rwinFixes);
+                stats.getTotalFixes(), stats.lctrlFixes(), stats.rctrlFixes(),
+                stats.lshiftFixes(), stats.rshiftFixes(), stats.laltFixes(),
+                stats.raltFixes(), stats.lwinFixes(), stats.rwinFixes());
       MessageBoxA(nullptr, buffer, "Modifier Key Auto-Fix - Statistics",
                   MB_OK | MB_ICONINFORMATION);
       break;
@@ -129,7 +130,7 @@ void UpdateTrayTooltip() {
   } else {
     char buffer[128];
     sprintf_s(buffer, "Modifier Key Auto-Fix - Running (Fixes: %d)",
-              g_pFixer->getStatistics().totalFixes);
+              g_pFixer->getStatistics().getTotalFixes());
     strcpy_s(g_nid.szTip, buffer);
   }
   Shell_NotifyIcon(NIM_MODIFY, &g_nid);
@@ -184,7 +185,7 @@ DWORD WINAPI WorkerThread(LPVOID lpParam) {
     g_pFixer->processEvents(50);
 
     // Check if a fix occurred
-    int currentFixCount = g_pFixer->getStatistics().totalFixes;
+    int currentFixCount = g_pFixer->getStatistics().getTotalFixes();
     if (currentFixCount > prevFixCount) {
       int fixedCount = currentFixCount - prevFixCount;
       prevFixCount = currentFixCount;
