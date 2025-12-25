@@ -1,6 +1,7 @@
 #ifndef MODIFIER_KEY_FIXER_H
 #define MODIFIER_KEY_FIXER_H
 
+#include "config.h"
 #include "interception.h"
 #include "physical_key_detector.h"
 #include "virtual_key_detector.h"
@@ -52,6 +53,7 @@ public:
 
   // Initialization
   bool initialize();
+  bool initialize(const Config &config);
   void cleanup();
 
   // Main processing
@@ -73,6 +75,7 @@ public:
   int getThreshold() const { return thresholdMs_; }
   void setShowMessages(bool show) { showMessages_ = show; }
   bool getShowMessages() const { return showMessages_; }
+  void applyConfig(const Config &config);
 
   // Check if initialized
   bool isInitialized() const { return context_ != nullptr; }

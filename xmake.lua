@@ -1,5 +1,8 @@
 add_rules("mode.debug", "mode.release")
 
+-- Set C++ standard to C++17 (required by toml++)
+set_languages("c++17")
+
 -- Add include directory
 add_includedirs("include")
 
@@ -7,14 +10,20 @@ add_includedirs("include")
 target("escModKey")
     set_kind("binary")
     add_files("src/main.cpp", "src/physical_key_detector.cpp", 
-              "src/virtual_key_detector.cpp", "src/modifier_key_fixer.cpp")
+              "src/virtual_key_detector.cpp", "src/modifier_key_fixer.cpp",
+              "src/config.cpp")
     add_linkdirs("lib")
     add_links("interception")
-    add_syslinks("user32")
+    add_syslinks("user32", "shell32")
     after_build(function (target)
         local target_dir = path.directory(target:targetfile())
         local dll_file = path.join("lib", "interception.dll")
         os.cp(dll_file, target_dir)
+        -- Copy config file if it doesn't exist
+        local config_file = path.join(target_dir, "config.toml")
+        if not os.isfile(config_file) then
+            os.cp("config.toml", target_dir)
+        end
     end)
 
 -- GUI version (System tray)
@@ -22,7 +31,8 @@ target("escModKey_gui")
     set_kind("binary")
     set_targetdir("$(builddir)/$(plat)/$(arch)/$(mode)")
     add_files("src/main_gui.cpp", "src/physical_key_detector.cpp", 
-              "src/virtual_key_detector.cpp", "src/modifier_key_fixer.cpp")
+              "src/virtual_key_detector.cpp", "src/modifier_key_fixer.cpp",
+              "src/config.cpp")
     -- Add resource file
     add_files("resources/app.rc")
     add_includedirs("resources")
@@ -35,6 +45,11 @@ target("escModKey_gui")
         local target_dir = path.directory(target:targetfile())
         local dll_file = path.join("lib", "interception.dll")
         os.cp(dll_file, target_dir)
+        -- Copy config file if it doesn't exist
+        local config_file = path.join(target_dir, "config.toml")
+        if not os.isfile(config_file) then
+            os.cp("config.toml", target_dir)
+        end
     end)
 
 -- Test: Physical Key Detector

@@ -1,4 +1,5 @@
 #include "../resources/resource.h"
+#include "config.h"
 #include "modifier_key_fixer.h"
 #include <Windows.h>
 #include <shellapi.h>
@@ -15,6 +16,7 @@
 HINSTANCE g_hInstance = nullptr;
 NOTIFYICONDATA g_nid = {};
 ModifierKeyFixer *g_pFixer = nullptr;
+Config *g_pConfig = nullptr;
 HWND g_hwnd = nullptr;
 bool g_running = true;
 
@@ -158,6 +160,11 @@ void ShowContextMenu(HWND hwnd) {
 
 // Show notification
 void ShowNotification(const char *title, const char *message) {
+  // Check if notifications are enabled
+  if (g_pConfig && !g_pConfig->getNotificationsEnabled()) {
+    return;
+  }
+
   g_nid.uFlags = NIF_INFO;
   strcpy_s(g_nid.szInfoTitle, title);
   strcpy_s(g_nid.szInfo, message);
@@ -182,9 +189,12 @@ DWORD WINAPI WorkerThread(LPVOID lpParam) {
       int fixedCount = currentFixCount - prevFixCount;
       prevFixCount = currentFixCount;
 
-      char message[128];
-      sprintf_s(message, "Fixed %d stuck key(s)", fixedCount);
-      ShowNotification("Auto-Fix", message);
+      // Only notify if enabled in config
+      if (g_pConfig && g_pConfig->getNotifyOnFix()) {
+        char message[128];
+        sprintf_s(message, "Fixed %d stuck key(s)", fixedCount);
+        ShowNotification("Auto-Fix", message);
+      }
       UpdateTrayTooltip();
     }
   }
@@ -208,11 +218,23 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
   g_hInstance = hInstance;
 
-  // Create and initialize fixer
+  // Load configuration
+  Config config;
+  g_pConfig = &config;
+
+  std::string configPath = Config::getDefaultConfigPath();
+  if (!config.load(configPath)) {
+    // Config file doesn't exist or has errors, use defaults
+    config.loadDefaults();
+    // Try to save default config
+    config.save(configPath);
+  }
+
+  // Create and initialize fixer with config
   ModifierKeyFixer fixer;
   g_pFixer = &fixer;
 
-  if (!fixer.initialize()) {
+  if (!fixer.initialize(config)) {
     MessageBoxA(nullptr,
                 "Failed to initialize Modifier Key Fixer.\n\n"
                 "Please ensure:\n"
@@ -257,8 +279,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     return 1;
   }
 
-  // Show startup notification
-  ShowNotification("Started", "Modifier Key Auto-Fix is now running");
+  // Show startup notification (if enabled in config)
+  if (config.getNotifyOnStartup()) {
+    ShowNotification("Started", "Modifier Key Auto-Fix is now running");
+  }
 
   // Create worker thread
   HANDLE hThread = CreateThread(nullptr, 0, WorkerThread, nullptr, 0, nullptr);

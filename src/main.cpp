@@ -1,3 +1,4 @@
+#include "config.h"
 #include "modifier_key_fixer.h"
 #include <Windows.h>
 #include <conio.h>
@@ -66,10 +67,24 @@ int main() {
   std::cout << "=== Modifier Key Auto-Fix Tool ===" << std::endl;
   std::cout << "Initializing..." << std::endl;
 
-  // Create and initialize fixer
+  // Load configuration
+  Config config;
+  std::string configPath = Config::getDefaultConfigPath();
+  if (!config.load(configPath)) {
+    // Config file doesn't exist or has errors, use defaults
+    config.loadDefaults();
+    // Try to save default config
+    config.save(configPath);
+  }
+
+  std::cout << "Configuration loaded from: " << configPath << std::endl;
+  std::cout << "Threshold: " << config.getThresholdMs() << "ms" << std::endl;
+  std::cout << std::endl;
+
+  // Create and initialize fixer with config
   ModifierKeyFixer fixer;
 
-  if (!fixer.initialize()) {
+  if (!fixer.initialize(config)) {
     std::cerr << "\nERROR: Failed to initialize" << std::endl;
     std::cerr << "Please ensure:" << std::endl;
     std::cerr << "1. Interception driver is installed" << std::endl;

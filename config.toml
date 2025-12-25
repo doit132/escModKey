@@ -1,0 +1,33 @@
+# Modifier Key Auto-Fix Configuration
+# 修饰键自动修复工具配置文件
+
+[general]
+# Time threshold (ms) before considering a key as stuck
+# 判定按键卡住的时间阈值（毫秒）
+thresholdMs = 1000
+
+# Show console messages (console version only)
+# 是否显示控制台消息（仅控制台版本）
+showMessages = true
+
+[notifications]
+# Show balloon notifications (GUI version)
+# 是否显示气泡通知（GUI 版本）
+enabled = true
+
+# Notify when a key is fixed
+# 修复按键时是否通知
+notifyOnFix = true
+
+# Notify on startup
+# 启动时是否通知
+notifyOnStartup = true
+
+[advanced]
+# Update tray tooltip interval (ms)
+# 托盘提示更新间隔（毫秒）
+tooltipUpdateInterval = 1000
+
+# Enable debug logging
+# 启用调试日志
+debugMode = false

@@ -48,7 +48,7 @@ bool ModifierKeyFixer::initialize() {
     return false;
   }
 
-  // Set filter for all keyboard events
+  // Set filter to listen for all keyboard events
   interception_set_filter(
       context_, interception_is_keyboard,
       INTERCEPTION_FILTER_KEY_DOWN | INTERCEPTION_FILTER_KEY_UP |
@@ -59,6 +59,19 @@ bool ModifierKeyFixer::initialize() {
   virtualDetector_.initialize();
 
   return true;
+}
+
+bool ModifierKeyFixer::initialize(const Config &config) {
+  if (!initialize()) {
+    return false;
+  }
+  applyConfig(config);
+  return true;
+}
+
+void ModifierKeyFixer::applyConfig(const Config &config) {
+  thresholdMs_ = config.getThresholdMs();
+  showMessages_ = config.getShowMessages();
 }
 
 void ModifierKeyFixer::cleanup() {

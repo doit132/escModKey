@@ -178,6 +178,21 @@ xmake
 const int MISMATCH_THRESHOLD_MS = 1000;  // 调整阈值
 ```
 
+## 配置
+
+程序使用 `config.toml` 配置文件，支持以下配置项：
+
+- **thresholdMs** - 判定卡键的时间阈值（默认 1000ms）
+- **showMessages** - 是否显示控制台消息
+- **notifications** - 通知设置（GUI 版本）
+- **advanced** - 高级设置
+
+配置文件位置：
+1. 程序目录：`config.toml`
+2. 用户目录：`%APPDATA%\ModifierKeyAutoFix\config.toml`
+
+详细配置说明请参阅 [docs/CONFIG.md](docs/CONFIG.md)。
+
 ## 使用场景
 
 - 修复 AutoHotkey 脚本执行后的卡键
@@ -203,6 +218,7 @@ const int MISMATCH_THRESHOLD_MS = 1000;  // 调整阈值
 ## 文档
 
 - [USER_GUIDE.md](USER_GUIDE.md) - 详细用户指南
+- [docs/CONFIG.md](docs/CONFIG.md) - 配置文件说明
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - 架构设计文档
 - [docs/DEVELOPER.md](docs/DEVELOPER.md) - 开发者指南
 
