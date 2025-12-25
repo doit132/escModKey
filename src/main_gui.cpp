@@ -11,6 +11,7 @@
 #define ID_TRAY_EXIT 1002
 #define ID_TRAY_PAUSE_RESUME 1003
 #define ID_TRAY_SHOW_STATS 1004
+#define ID_TRAY_RESTART 1005
 
 // Global variables
 HINSTANCE g_hInstance = nullptr;
@@ -72,6 +73,31 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
       g_running = false;
       PostQuitMessage(0);
       break;
+
+    case ID_TRAY_RESTART: {
+      // Reload configuration
+      std::string configPath = Config::getDefaultConfigPath();
+      if (!g_pConfig->load(configPath)) {
+        ShowNotification("Restart Failed", "Failed to reload configuration");
+        break;
+      }
+
+      // Cleanup old fixer
+      g_pFixer->cleanup();
+
+      // Reinitialize with new configuration
+      if (!g_pFixer->initialize(*g_pConfig)) {
+        ShowNotification("Restart Failed", "Failed to reinitialize");
+        break;
+      }
+
+      // Disable console messages for GUI mode
+      g_pFixer->setShowMessages(false);
+
+      ShowNotification("Restarted", "Configuration reloaded successfully");
+      UpdateTrayTooltip();
+      break;
+    }
 
     case ID_TRAY_PAUSE_RESUME:
       if (g_pFixer->isPaused()) {
@@ -166,6 +192,7 @@ void ShowContextMenu(HWND hwnd) {
   }
 
   AppendMenuA(hMenu, MF_STRING, ID_TRAY_SHOW_STATS, "Show Statistics");
+  AppendMenuA(hMenu, MF_STRING, ID_TRAY_RESTART, "Restart (Reload Config)");
   AppendMenuA(hMenu, MF_SEPARATOR, 0, nullptr);
   AppendMenuA(hMenu, MF_STRING, ID_TRAY_EXIT, "Exit");
 
