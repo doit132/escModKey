@@ -4,14 +4,16 @@
 #include <algorithm>
 
 // Modifier key scan codes (based on actual testing)
-#define SCANCODE_LCTRL 0x1D
-#define SCANCODE_RCTRL 0x1D // with E0 flag
-#define SCANCODE_LSHIFT 0x2A
-#define SCANCODE_RSHIFT 0x36
-#define SCANCODE_LALT 0x38
-#define SCANCODE_RALT 0x38 // with E0 flag
-#define SCANCODE_LWIN 0x5B // with E0 flag
-#define SCANCODE_RWIN 0x5C // with E0 flag
+namespace ScanCodes {
+constexpr unsigned short LCTRL = 0x1D;
+constexpr unsigned short RCTRL = 0x1D; // with E0 flag
+constexpr unsigned short LSHIFT = 0x2A;
+constexpr unsigned short RSHIFT = 0x36;
+constexpr unsigned short LALT = 0x38;
+constexpr unsigned short RALT = 0x38; // with E0 flag
+constexpr unsigned short LWIN = 0x5B; // with E0 flag
+constexpr unsigned short RWIN = 0x5C; // with E0 flag
+} // namespace ScanCodes
 
 // ModifierKeyStates implementation
 ModifierKeyStates::ModifierKeyStates() { initializeDefaultKeys(); }
@@ -19,14 +21,14 @@ ModifierKeyStates::ModifierKeyStates() { initializeDefaultKeys(); }
 void ModifierKeyStates::initializeDefaultKeys() {
   keys_.clear();
   // Add default 8 modifier keys
-  keys_.emplace_back("Left Ctrl", "lctrl", SCANCODE_LCTRL, false);
-  keys_.emplace_back("Right Ctrl", "rctrl", SCANCODE_RCTRL, true);
-  keys_.emplace_back("Left Shift", "lshift", SCANCODE_LSHIFT, false);
-  keys_.emplace_back("Right Shift", "rshift", SCANCODE_RSHIFT, false);
-  keys_.emplace_back("Left Alt", "lalt", SCANCODE_LALT, false);
-  keys_.emplace_back("Right Alt", "ralt", SCANCODE_RALT, true);
-  keys_.emplace_back("Left Win", "lwin", SCANCODE_LWIN, true);
-  keys_.emplace_back("Right Win", "rwin", SCANCODE_RWIN, true);
+  keys_.emplace_back("Left Ctrl", "lctrl", ScanCodes::LCTRL, false);
+  keys_.emplace_back("Right Ctrl", "rctrl", ScanCodes::RCTRL, true);
+  keys_.emplace_back("Left Shift", "lshift", ScanCodes::LSHIFT, false);
+  keys_.emplace_back("Right Shift", "rshift", ScanCodes::RSHIFT, false);
+  keys_.emplace_back("Left Alt", "lalt", ScanCodes::LALT, false);
+  keys_.emplace_back("Right Alt", "ralt", ScanCodes::RALT, true);
+  keys_.emplace_back("Left Win", "lwin", ScanCodes::LWIN, true);
+  keys_.emplace_back("Right Win", "rwin", ScanCodes::RWIN, true);
 }
 
 void ModifierKeyStates::initializeWithConfig(bool monitorCtrl,
@@ -36,23 +38,23 @@ void ModifierKeyStates::initializeWithConfig(bool monitorCtrl,
 
   // Add keys based on configuration
   if (monitorCtrl) {
-    keys_.emplace_back("Left Ctrl", "lctrl", SCANCODE_LCTRL, false);
-    keys_.emplace_back("Right Ctrl", "rctrl", SCANCODE_RCTRL, true);
+    keys_.emplace_back("Left Ctrl", "lctrl", ScanCodes::LCTRL, false);
+    keys_.emplace_back("Right Ctrl", "rctrl", ScanCodes::RCTRL, true);
   }
 
   if (monitorShift) {
-    keys_.emplace_back("Left Shift", "lshift", SCANCODE_LSHIFT, false);
-    keys_.emplace_back("Right Shift", "rshift", SCANCODE_RSHIFT, false);
+    keys_.emplace_back("Left Shift", "lshift", ScanCodes::LSHIFT, false);
+    keys_.emplace_back("Right Shift", "rshift", ScanCodes::RSHIFT, false);
   }
 
   if (monitorAlt) {
-    keys_.emplace_back("Left Alt", "lalt", SCANCODE_LALT, false);
-    keys_.emplace_back("Right Alt", "ralt", SCANCODE_RALT, true);
+    keys_.emplace_back("Left Alt", "lalt", ScanCodes::LALT, false);
+    keys_.emplace_back("Right Alt", "ralt", ScanCodes::RALT, true);
   }
 
   if (monitorWin) {
-    keys_.emplace_back("Left Win", "lwin", SCANCODE_LWIN, true);
-    keys_.emplace_back("Right Win", "rwin", SCANCODE_RWIN, true);
+    keys_.emplace_back("Left Win", "lwin", ScanCodes::LWIN, true);
+    keys_.emplace_back("Right Win", "rwin", ScanCodes::RWIN, true);
   }
 }
 
