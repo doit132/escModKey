@@ -60,30 +60,10 @@ void ModifierKeyStates::initializeWithConfig(
     bool monitorCtrl, bool monitorShift, bool monitorAlt, bool monitorWin,
     const std::vector<std::string> &disabledKeys,
     const std::vector<CustomKeyConfig> &customKeys) {
-  keys_.clear();
+  // First, initialize with simple mode (adds standard keys)
+  initializeWithConfig(monitorCtrl, monitorShift, monitorAlt, monitorWin);
 
-  // Add keys based on configuration
-  if (monitorCtrl) {
-    keys_.emplace_back("Left Ctrl", "lctrl", SCANCODE_LCTRL, false);
-    keys_.emplace_back("Right Ctrl", "rctrl", SCANCODE_RCTRL, true);
-  }
-
-  if (monitorShift) {
-    keys_.emplace_back("Left Shift", "lshift", SCANCODE_LSHIFT, false);
-    keys_.emplace_back("Right Shift", "rshift", SCANCODE_RSHIFT, false);
-  }
-
-  if (monitorAlt) {
-    keys_.emplace_back("Left Alt", "lalt", SCANCODE_LALT, false);
-    keys_.emplace_back("Right Alt", "ralt", SCANCODE_RALT, true);
-  }
-
-  if (monitorWin) {
-    keys_.emplace_back("Left Win", "lwin", SCANCODE_LWIN, true);
-    keys_.emplace_back("Right Win", "rwin", SCANCODE_RWIN, true);
-  }
-
-  // Remove disabled keys (Step 6)
+  // Remove disabled keys
   for (const auto &disabledId : disabledKeys) {
     // Convert to lowercase for case-insensitive comparison
     std::string lowerDisabledId = disabledId;
@@ -99,7 +79,7 @@ void ModifierKeyStates::initializeWithConfig(
                 keys_.end());
   }
 
-  // Add custom keys (Step 6)
+  // Add custom keys
   for (const auto &customKey : customKeys) {
     // Generate ID from name (lowercase, no spaces)
     std::string id = customKey.name;
