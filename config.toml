@@ -31,3 +31,23 @@ tooltipUpdateInterval = 1000
 # Enable debug logging
 # 启用调试日志
 debugMode = false
+
+[keys]
+# Quick toggle for standard modifier keys
+# 标准修饰键快速开关
+monitorCtrl = true
+monitorShift = true
+monitorAlt = true
+monitorWin = true
+
+# Advanced: Disable specific left/right keys
+# 高级：禁用特定的左右键（例如: ["RightWin", "RightAlt"]）
+disabledKeys = []
+
+# Advanced: Add custom keys to monitor
+# 高级：添加自定义监控按键
+# Format: [[scanCode, needsE0, name, vkCode]]
+# 格式：[[扫描码, 需要E0标志, 名称, 虚拟键码]]
+# Example for CapsLock: [[0x3A, false, "CapsLock", 0x14]]
+# CapsLock 示例: [[0x3A, false, "CapsLock", 0x14]]
+customKeys = []

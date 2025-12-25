@@ -84,6 +84,41 @@ int main() {
 
   std::cout << "Configuration loaded from: " << configPath << std::endl;
   std::cout << "Threshold: " << config.getThresholdMs() << "ms" << std::endl;
+
+  // Print key monitoring configuration (Step 4: read but not apply)
+  std::cout << "\nKey Monitoring Configuration (loaded, not applied yet):"
+            << std::endl;
+  std::cout << "  Monitor Ctrl: " << (config.getMonitorCtrl() ? "Yes" : "No")
+            << std::endl;
+  std::cout << "  Monitor Shift: " << (config.getMonitorShift() ? "Yes" : "No")
+            << std::endl;
+  std::cout << "  Monitor Alt: " << (config.getMonitorAlt() ? "Yes" : "No")
+            << std::endl;
+  std::cout << "  Monitor Win: " << (config.getMonitorWin() ? "Yes" : "No")
+            << std::endl;
+
+  if (!config.getDisabledKeys().empty()) {
+    std::cout << "  Disabled Keys: ";
+    for (size_t i = 0; i < config.getDisabledKeys().size(); ++i) {
+      if (i > 0)
+        std::cout << ", ";
+      std::cout << config.getDisabledKeys()[i];
+    }
+    std::cout << std::endl;
+  }
+
+  if (!config.getCustomKeys().empty()) {
+    std::cout << "  Custom Keys: " << config.getCustomKeys().size()
+              << " defined" << std::endl;
+    for (const auto &key : config.getCustomKeys()) {
+      std::cout << "    - " << key.name << " (ScanCode: 0x" << std::hex
+                << key.scanCode << std::dec << ", VK: 0x" << std::hex
+                << key.vkCode << std::dec << ")" << std::endl;
+    }
+  }
+
+  std::cout << "\nNote: Using default 8 modifier keys for now (Step 4)"
+            << std::endl;
   std::cout << std::endl;
 
   // Create and initialize fixer with config

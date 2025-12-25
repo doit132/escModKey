@@ -2,6 +2,18 @@
 #define CONFIG_H
 
 #include <string>
+#include <vector>
+
+// Custom key configuration
+struct CustomKeyConfig {
+  unsigned short scanCode;
+  bool needsE0;
+  std::string name;
+  int vkCode;
+
+  CustomKeyConfig(unsigned short sc, bool e0, const std::string &n, int vk)
+      : scanCode(sc), needsE0(e0), name(n), vkCode(vk) {}
+};
 
 // Configuration class for Modifier Key Auto-Fix
 class Config {
@@ -44,6 +56,33 @@ public:
   bool getDebugMode() const { return debugMode_; }
   void setDebugMode(bool debug) { debugMode_ = debug; }
 
+  // Key monitoring settings
+  bool getMonitorCtrl() const { return monitorCtrl_; }
+  void setMonitorCtrl(bool monitor) { monitorCtrl_ = monitor; }
+
+  bool getMonitorShift() const { return monitorShift_; }
+  void setMonitorShift(bool monitor) { monitorShift_ = monitor; }
+
+  bool getMonitorAlt() const { return monitorAlt_; }
+  void setMonitorAlt(bool monitor) { monitorAlt_ = monitor; }
+
+  bool getMonitorWin() const { return monitorWin_; }
+  void setMonitorWin(bool monitor) { monitorWin_ = monitor; }
+
+  const std::vector<std::string> &getDisabledKeys() const {
+    return disabledKeys_;
+  }
+  void setDisabledKeys(const std::vector<std::string> &keys) {
+    disabledKeys_ = keys;
+  }
+
+  const std::vector<CustomKeyConfig> &getCustomKeys() const {
+    return customKeys_;
+  }
+  void setCustomKeys(const std::vector<CustomKeyConfig> &keys) {
+    customKeys_ = keys;
+  }
+
   // Get configuration file path
   // Tries program directory first, then user directory
   static std::string getDefaultConfigPath();
@@ -61,6 +100,14 @@ private:
   // Advanced settings
   int tooltipUpdateInterval_;
   bool debugMode_;
+
+  // Key monitoring settings
+  bool monitorCtrl_;
+  bool monitorShift_;
+  bool monitorAlt_;
+  bool monitorWin_;
+  std::vector<std::string> disabledKeys_;
+  std::vector<CustomKeyConfig> customKeys_;
 
   // Helper methods
   static std::string getProgramDirectory();

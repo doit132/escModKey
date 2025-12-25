@@ -20,6 +20,14 @@ void Config::loadDefaults() {
   // Advanced settings
   tooltipUpdateInterval_ = 1000;
   debugMode_ = false;
+
+  // Key monitoring settings (default: monitor all)
+  monitorCtrl_ = true;
+  monitorShift_ = true;
+  monitorAlt_ = true;
+  monitorWin_ = true;
+  disabledKeys_.clear();
+  customKeys_.clear();
 }
 
 bool Config::load(const std::string &filepath) {
@@ -58,6 +66,53 @@ bool Config::load(const std::string &filepath) {
       }
       if (auto debug = (*advanced)["debugMode"].value<bool>()) {
         debugMode_ = *debug;
+      }
+    }
+
+    // Load key monitoring settings
+    if (auto keys = config["keys"].as_table()) {
+      if (auto monitorCtrl = (*keys)["monitorCtrl"].value<bool>()) {
+        monitorCtrl_ = *monitorCtrl;
+      }
+      if (auto monitorShift = (*keys)["monitorShift"].value<bool>()) {
+        monitorShift_ = *monitorShift;
+      }
+      if (auto monitorAlt = (*keys)["monitorAlt"].value<bool>()) {
+        monitorAlt_ = *monitorAlt;
+      }
+      if (auto monitorWin = (*keys)["monitorWin"].value<bool>()) {
+        monitorWin_ = *monitorWin;
+      }
+
+      // Load disabled keys
+      if (auto disabledKeys = (*keys)["disabledKeys"].as_array()) {
+        disabledKeys_.clear();
+        for (const auto &key : *disabledKeys) {
+          if (auto keyStr = key.value<std::string>()) {
+            disabledKeys_.push_back(*keyStr);
+          }
+        }
+      }
+
+      // Load custom keys
+      if (auto customKeys = (*keys)["customKeys"].as_array()) {
+        customKeys_.clear();
+        for (const auto &keyArray : *customKeys) {
+          if (auto arr = keyArray.as_array()) {
+            if (arr->size() >= 4) {
+              auto scanCode = (*arr)[0].value<int64_t>();
+              auto needsE0 = (*arr)[1].value<bool>();
+              auto name = (*arr)[2].value<std::string>();
+              auto vkCode = (*arr)[3].value<int64_t>();
+
+              if (scanCode && needsE0 && name && vkCode) {
+                customKeys_.emplace_back(static_cast<unsigned short>(*scanCode),
+                                         *needsE0, *name,
+                                         static_cast<int>(*vkCode));
+              }
+            }
+          }
+        }
       }
     }
 
@@ -113,7 +168,38 @@ bool Config::save(const std::string &filepath) const {
 
     file << "# Enable debug logging\n";
     file << "# 启用调试日志\n";
-    file << "debugMode = " << (debugMode_ ? "true" : "false") << "\n";
+    file << "debugMode = " << (debugMode_ ? "true" : "false") << "\n\n";
+
+    file << "[keys]\n";
+    file << "# Quick toggle for standard modifier keys\n";
+    file << "# 标准修饰键快速开关\n";
+    file << "monitorCtrl = " << (monitorCtrl_ ? "true" : "false") << "\n";
+    file << "monitorShift = " << (monitorShift_ ? "true" : "false") << "\n";
+    file << "monitorAlt = " << (monitorAlt_ ? "true" : "false") << "\n";
+    file << "monitorWin = " << (monitorWin_ ? "true" : "false") << "\n\n";
+
+    file << "# Advanced: Disable specific left/right keys\n";
+    file << "# 高级：禁用特定的左右键\n";
+    file << "disabledKeys = [";
+    for (size_t i = 0; i < disabledKeys_.size(); ++i) {
+      if (i > 0)
+        file << ", ";
+      file << "\"" << disabledKeys_[i] << "\"";
+    }
+    file << "]\n\n";
+
+    file << "# Advanced: Add custom keys to monitor\n";
+    file << "# 高级：添加自定义监控按键\n";
+    file << "# Format: [[scanCode, needsE0, name, vkCode]]\n";
+    file << "customKeys = [";
+    for (size_t i = 0; i < customKeys_.size(); ++i) {
+      if (i > 0)
+        file << ", ";
+      file << "[" << customKeys_[i].scanCode << ", "
+           << (customKeys_[i].needsE0 ? "true" : "false") << ", \""
+           << customKeys_[i].name << "\", " << customKeys_[i].vkCode << "]";
+    }
+    file << "]\n";
 
     file.close();
     return true;
