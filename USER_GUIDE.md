@@ -52,9 +52,12 @@
 3. 右键托盘图标可以：
    - 暂停/恢复监控
    - 显示统计信息
+   - 重启程序（重新加载配置）
    - 退出程序
 4. 双击托盘图标显示统计信息
 5. 当修复按键时会显示气泡通知
+
+**重启功能**：修改配置文件后，右键托盘图标选择"Restart (Reload Config)"即可重新加载配置，无需退出程序。
 
 ### 控制台版本
 
@@ -88,13 +91,44 @@ Left Ctrl   : Physical[RELEASED] Virtual[PRESSED] <-- MISMATCH (1523ms) [STUCK!]
 
 ## 配置
 
-编辑 `include/modifier_key_fixer.h` 进行自定义：
+程序支持通过 `config.toml` 配置文件进行自定义配置。配置文件位于程序目录或用户配置目录。
 
-```cpp
-const int MISMATCH_THRESHOLD_MS = 1000;  // 认为卡住前的等待时间
+### 配置文件位置
+
+- 程序目录：`.\config.toml`（优先）
+- 用户目录：`%APPDATA%\ModifierKeyAutoFix\config.toml`
+
+### 重新加载配置
+
+**GUI 版本**：修改配置文件后，右键托盘图标选择"Restart (Reload Config)"即可重新加载配置，无需退出程序。
+
+**控制台版本**：需要退出程序（按 ESC）后重新启动。
+
+### 配置选项
+
+详细配置说明请参考 `config.toml` 文件中的注释。主要配置项包括：
+
+- **阈值设置**：`thresholdMs` - 判定按键卡住的时间阈值（默认 1000ms）
+- **按键监控**：`monitorCtrl/Shift/Alt/Win` - 快速开关标准修饰键监控
+- **禁用按键**：`disabledKeys` - 禁用特定的左右键
+- **自定义按键**：`customKeys` - 添加自定义按键监控（如 CapsLock）
+- **通知设置**：`notificationsEnabled`, `notifyOnFix`, `notifyOnStartup` - 控制通知行为
+
+### 配置示例
+
+```toml
+[general]
+thresholdMs = 1000
+
+[keys]
+monitorCtrl = true
+monitorShift = true
+monitorAlt = true
+monitorWin = false  # 禁用 Win 键监控
+
+disabledKeys = ["rwin"]  # 禁用右 Win 键
+customKeys = [[0x3A, false, "CapsLock", 0x14]]  # 添加 CapsLock 监控
 ```
-
-- **MISMATCH_THRESHOLD_MS**：如果出现误判则增加，如需更快修复则减少
 
 ## 工作原理
 
