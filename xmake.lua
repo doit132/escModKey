@@ -50,9 +50,9 @@ target("escModKey_gui")
     end)
 
 -- 测试：物理按键检测器
-target("test_physical_detector")
+target("test_physical_unit")
     set_kind("binary")
-    add_files("test/test_physical_detector.cpp", "src/physical_key_detector.cpp")
+    add_files("test/test_physical_unit.cpp", "src/physical_key_detector.cpp")
     add_linkdirs("lib")
     add_links("interception")
     add_syslinks("user32")
@@ -61,36 +61,36 @@ target("test_physical_detector")
     end)
 
 -- 测试：虚拟按键检测器
-target("test_virtual_detector")
+target("test_virtual_unit")
     set_kind("binary")
-    add_files("test/test_virtual_detector.cpp", "src/virtual_key_detector.cpp")
+    add_files("test/test_virtual_unit.cpp", "src/virtual_key_detector.cpp")
     add_syslinks("user32")
     after_build(function (target)
         os.cp("lib/interception.dll", path.directory(target:targetfile()))
     end)
 
--- 测试：配置文件按键映射
-target("test_config")
+-- 测试：配置文件按键映射（单元测试）
+target("test_config_unit")
     set_kind("binary")
-    add_files("test/test_config.cpp", "src/config.cpp")
+    add_files("test/test_config_unit.cpp", "src/config.cpp")
     add_syslinks("user32", "shell32")
 
--- 测试：配置文件按键映射属性
-target("test_config_properties")
+-- 测试：配置文件按键映射（属性测试 - 往返）
+target("test_config_pbt_roundtrip")
     set_kind("binary")
-    add_files("test/test_config_properties.cpp", "src/config.cpp")
+    add_files("test/test_config_pbt_roundtrip.cpp", "src/config.cpp")
     add_syslinks("user32", "shell32")
 
--- 测试：配置验证属性
-target("test_config_validation")
+-- 测试：配置验证（属性测试）
+target("test_config_pbt_validation")
     set_kind("binary")
-    add_files("test/test_config_validation.cpp", "src/config.cpp")
+    add_files("test/test_config_pbt_validation.cpp", "src/config.cpp")
     add_syslinks("user32", "shell32")
 
--- 测试：物理按键检测器映射初始化
-target("test_physical_mapping")
+-- 测试：物理按键检测器映射初始化（单元测试）
+target("test_physical_unit_mapping")
     set_kind("binary")
-    add_files("test/test_physical_mapping.cpp", "src/physical_key_detector.cpp", "src/config.cpp")
+    add_files("test/test_physical_unit_mapping.cpp", "src/physical_key_detector.cpp", "src/config.cpp")
     add_linkdirs("lib")
     add_links("interception")
     add_syslinks("user32", "shell32")
@@ -98,10 +98,10 @@ target("test_physical_mapping")
         os.cp("lib/interception.dll", path.directory(target:targetfile()))
     end)
 
--- 测试：物理按键检测器映射属性
-target("test_physical_mapping_properties")
+-- 测试：物理按键检测器映射（属性测试）
+target("test_physical_pbt_mapping")
     set_kind("binary")
-    add_files("test/test_physical_mapping_properties.cpp", "src/physical_key_detector.cpp", "src/config.cpp")
+    add_files("test/test_physical_pbt_mapping.cpp", "src/physical_key_detector.cpp", "src/config.cpp")
     add_linkdirs("lib")
     add_links("interception")
     add_syslinks("user32", "shell32")
@@ -109,10 +109,10 @@ target("test_physical_mapping_properties")
         os.cp("lib/interception.dll", path.directory(target:targetfile()))
     end)
 
--- 测试：物理按键事件处理
-target("test_physical_event_processing")
+-- 测试：物理按键事件处理（单元测试）
+target("test_physical_unit_events")
     set_kind("binary")
-    add_files("test/test_physical_event_processing.cpp", "src/physical_key_detector.cpp", "src/config.cpp")
+    add_files("test/test_physical_unit_events.cpp", "src/physical_key_detector.cpp", "src/config.cpp")
     add_linkdirs("lib")
     add_links("interception")
     add_syslinks("user32", "shell32")
@@ -120,10 +120,10 @@ target("test_physical_event_processing")
         os.cp("lib/interception.dll", path.directory(target:targetfile()))
     end)
 
--- 测试：物理按键事件处理属性
-target("test_physical_event_properties")
+-- 测试：物理按键事件处理（属性测试）
+target("test_physical_pbt_events")
     set_kind("binary")
-    add_files("test/test_physical_event_properties.cpp", "src/physical_key_detector.cpp", "src/config.cpp")
+    add_files("test/test_physical_pbt_events.cpp", "src/physical_key_detector.cpp", "src/config.cpp")
     add_linkdirs("lib")
     add_links("interception")
     add_syslinks("user32", "shell32")
@@ -132,9 +132,9 @@ target("test_physical_event_properties")
     end)
 
 -- 测试：集成测试
-target("test_integration")
+target("test_integration_unit")
     set_kind("binary")
-    add_files("test/test_integration.cpp", "src/config.cpp", "src/physical_key_detector.cpp",
+    add_files("test/test_integration_unit.cpp", "src/config.cpp", "src/physical_key_detector.cpp",
               "src/virtual_key_detector.cpp", "src/modifier_key_fixer.cpp")
     add_linkdirs("lib")
     add_links("interception")
