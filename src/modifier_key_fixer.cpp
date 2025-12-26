@@ -194,10 +194,11 @@ bool ModifierKeyFixer::initialize(const Config &config) {
     return false;
   }
 
-  // Initialize detectors with full configuration
+  // Initialize detectors with full configuration including key mappings
   physicalDetector_.initializeWithConfig(
       config.getMonitorCtrl(), config.getMonitorShift(), config.getMonitorAlt(),
-      config.getMonitorWin(), config.getDisabledKeys(), config.getCustomKeys());
+      config.getMonitorWin(), config.getDisabledKeys(), config.getCustomKeys(),
+      config.getKeyMappings());
   virtualDetector_.initializeWithConfig(
       config.getMonitorCtrl(), config.getMonitorShift(), config.getMonitorAlt(),
       config.getMonitorWin(), config.getDisabledKeys(), config.getCustomKeys());
