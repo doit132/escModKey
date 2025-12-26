@@ -1,5 +1,8 @@
 add_rules("mode.debug", "mode.release")
 
+-- 设置源文件编码为 UTF-8（解决 C4819 警告）
+add_cxflags("/utf-8", {tools = {"cl"}})
+
 -- Set C++ standard to C++17 (required by toml++)
 set_languages("c++17")
 
