@@ -2,8 +2,17 @@
 #include "toml.h"
 #include <Windows.h>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
+#include <set>
 #include <shlobj.h>
+
+// Helper function to validate target key ID
+static bool isValidModifierKeyId(const std::string &keyId) {
+  static const std::set<std::string> validKeys = {
+      "lctrl", "rctrl", "lshift", "rshift", "lalt", "ralt", "lwin", "rwin"};
+  return validKeys.find(keyId) != validKeys.end();
+}
 
 Config::Config() { loadDefaults(); }
 
@@ -28,6 +37,7 @@ void Config::loadDefaults() {
   monitorWin_ = true;
   disabledKeys_.clear();
   customKeys_.clear();
+  keyMappings_.clear();
 }
 
 bool Config::load(const std::string &filepath) {
@@ -116,6 +126,52 @@ bool Config::load(const std::string &filepath) {
       }
     }
 
+    // Load key mappings
+    if (auto mappingsArray = config["keyMappings"].as_array()) {
+      keyMappings_.clear();
+      for (const auto &mappingTable : *mappingsArray) {
+        if (auto table = mappingTable.as_table()) {
+          auto sourceScanCode = (*table)["sourceScanCode"].value<int64_t>();
+          auto sourceNeedsE0 = (*table)["sourceNeedsE0"].value<bool>();
+          auto targetKeyId = (*table)["targetKeyId"].value<std::string>();
+          auto mappingType = (*table)["mappingType"].value<std::string>();
+          auto description = (*table)["description"].value<std::string>();
+
+          // Validate required fields
+          if (!sourceScanCode || !sourceNeedsE0.has_value() || !targetKeyId) {
+            std::cerr << "Warning: Key mapping missing required field. Mapping "
+                         "ignored."
+                      << std::endl;
+            continue;
+          }
+
+          // Validate target key ID
+          if (!isValidModifierKeyId(*targetKeyId)) {
+            std::cerr << "Error: Invalid target key ID '" << *targetKeyId
+                      << "'. Mapping rejected." << std::endl;
+            continue;
+          }
+
+          // Validate and set mapping type (default to "additional")
+          std::string type = "additional";
+          if (mappingType) {
+            if (*mappingType == "additional" || *mappingType == "replace") {
+              type = *mappingType;
+            } else {
+              std::cerr << "Warning: Invalid mapping type '" << *mappingType
+                        << "'. Using default 'additional'." << std::endl;
+            }
+          }
+
+          std::string desc = description ? *description : "";
+
+          keyMappings_.emplace_back(
+              static_cast<unsigned short>(*sourceScanCode), *sourceNeedsE0,
+              *targetKeyId, type, desc);
+        }
+      }
+    }
+
     return true;
   } catch (const toml::parse_error &err) {
     std::cerr << "Error parsing config file: " << err.description()
@@ -199,7 +255,26 @@ bool Config::save(const std::string &filepath) const {
            << (customKeys_[i].needsE0 ? "true" : "false") << ", \""
            << customKeys_[i].name << "\", " << customKeys_[i].vkCode << "]";
     }
-    file << "]\n";
+    file << "]\n\n";
+
+    // Save key mappings
+    file << "# Key Mappings: Map non-modifier keys to modifier keys\n";
+    file << "# 按键映射：将非修饰键映射为修饰键\n";
+    file << "# Example: Map CapsLock to Left Ctrl\n";
+    file << "# 示例：将 CapsLock 映射为左 Ctrl\n";
+    for (const auto &mapping : keyMappings_) {
+      file << "[[keyMappings]]\n";
+      file << "sourceScanCode = 0x" << std::hex << std::uppercase
+           << static_cast<int>(mapping.sourceScanCode) << std::dec << "\n";
+      file << "sourceNeedsE0 = " << (mapping.sourceNeedsE0 ? "true" : "false")
+           << "\n";
+      file << "targetKeyId = \"" << mapping.targetKeyId << "\"\n";
+      file << "mappingType = \"" << mapping.mappingType << "\"\n";
+      if (!mapping.description.empty()) {
+        file << "description = \"" << mapping.description << "\"\n";
+      }
+      file << "\n";
+    }
 
     file.close();
     return true;

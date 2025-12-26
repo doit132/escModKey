@@ -15,6 +15,22 @@ struct CustomKeyConfig {
       : scanCode(sc), needsE0(e0), name(n), vkCode(vk) {}
 };
 
+// Key mapping configuration
+struct KeyMappingConfig {
+  unsigned short sourceScanCode; // 源按键扫描码
+  bool sourceNeedsE0;            // 源按键是否需要 E0 标志
+  std::string targetKeyId;       // 目标按键 ID (如 "lctrl", "rctrl")
+  std::string mappingType;       // 映射类型: "additional" 或 "replace"
+  std::string description;       // 可选描述
+
+  KeyMappingConfig(unsigned short sourceSc, bool sourceE0,
+                   const std::string &targetId,
+                   const std::string &type = "additional",
+                   const std::string &desc = "")
+      : sourceScanCode(sourceSc), sourceNeedsE0(sourceE0),
+        targetKeyId(targetId), mappingType(type), description(desc) {}
+};
+
 // Configuration class for Modifier Key Auto-Fix
 class Config {
 public:
@@ -83,6 +99,14 @@ public:
     customKeys_ = keys;
   }
 
+  // Key mapping settings
+  const std::vector<KeyMappingConfig> &getKeyMappings() const {
+    return keyMappings_;
+  }
+  void setKeyMappings(const std::vector<KeyMappingConfig> &mappings) {
+    keyMappings_ = mappings;
+  }
+
   // Get configuration file path
   // Tries program directory first, then user directory
   static std::string getDefaultConfigPath();
@@ -108,6 +132,7 @@ private:
   bool monitorWin_;
   std::vector<std::string> disabledKeys_;
   std::vector<CustomKeyConfig> customKeys_;
+  std::vector<KeyMappingConfig> keyMappings_;
 
   // Helper methods
   static std::string getProgramDirectory();

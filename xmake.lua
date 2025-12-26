@@ -75,3 +75,21 @@ target("test_virtual_detector")
         local dll_file = path.join("lib", "interception.dll")
         os.cp(dll_file, target_dir)
     end)
+
+-- Test: Config Key Mappings
+target("test_config")
+    set_kind("binary")
+    add_files("test/test_config.cpp", "src/config.cpp")
+    add_syslinks("user32", "shell32")
+
+-- Test: Config Key Mappings Properties
+target("test_config_properties")
+    set_kind("binary")
+    add_files("test/test_config_properties.cpp", "src/config.cpp")
+    add_syslinks("user32", "shell32")
+
+-- Test: Config Validation Properties
+target("test_config_validation")
+    set_kind("binary")
+    add_files("test/test_config_validation.cpp", "src/config.cpp")
+    add_syslinks("user32", "shell32")
