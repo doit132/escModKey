@@ -34,7 +34,7 @@
   - **Property 8: 映射类型验证和默认值**
   - **Validates: Requirements 3.2, 3.4**
 
-- [ ] 2. 扩展物理按键检测器以支持按键映射
+- [x] 2. 扩展物理按键检测器以支持按键映射
   - 在 `include/physical_key_detector.h` 中添加映射相关的成员变量和方法
   - 添加 `keyMappings_` 映射表（`std::map<std::pair<unsigned short, bool>, std::string>`）
   - 添加 `applyKeyMapping()` 辅助方法
@@ -43,13 +43,13 @@
   - 实现映射表的建立逻辑（验证目标按键是否在监控列表中）
   - _Requirements: 4.1, 4.2, 4.3, 4.4_
 
-- [ ] 2.1 编写映射初始化的单元测试
+- [x] 2.1 编写映射初始化的单元测试
   - 测试使用有效映射配置初始化
   - 测试目标按键不在监控列表中的情况
   - 测试多个源按键映射到同一目标按键
   - _Requirements: 4.2, 4.3, 4.4, 3.5_
 
-- [ ] 2.2 编写映射初始化的属性测试
+- [x] 2.2 编写映射初始化的属性测试
   - **Property 9: 初始化时建立映射表**
   - **Validates: Requirements 4.2, 4.3, 4.4**
 

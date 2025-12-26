@@ -2,6 +2,7 @@
 #include "config.h"
 #include "string_utils.h"
 #include <algorithm>
+#include <iostream>
 
 // Modifier key scan codes (based on actual testing)
 namespace ScanCodes {
@@ -200,6 +201,43 @@ void PhysicalKeyDetector::initializeWithConfig(
                                monitorWin, disabledKeys, customKeys);
 }
 
+void PhysicalKeyDetector::initializeWithConfig(
+    bool monitorCtrl, bool monitorShift, bool monitorAlt, bool monitorWin,
+    const std::vector<std::string> &disabledKeys,
+    const std::vector<CustomKeyConfig> &customKeys,
+    const std::vector<KeyMappingConfig> &keyMappings) {
+  // Call the existing initialization method
+  states_.initializeWithConfig(monitorCtrl, monitorShift, monitorAlt,
+                               monitorWin, disabledKeys, customKeys);
+
+  // Clear and rebuild mapping table
+  keyMappings_.clear();
+
+  // Process each mapping configuration
+  for (const auto &mapping : keyMappings) {
+    // Verify target key is in the monitoring list
+    KeyState *targetKey = states_.findKeyById(mapping.targetKeyId);
+    if (!targetKey) {
+      // Target key is not being monitored, log warning and skip
+      std::cerr << "Warning: Key mapping target '" << mapping.targetKeyId
+                << "' is not being monitored. Mapping ignored." << std::endl;
+      continue;
+    }
+
+    // Only support "additional" type (replace type not implemented yet)
+    if (mapping.mappingType != "additional") {
+      std::cerr << "Warning: Only 'additional' mapping type is supported. "
+                << "Mapping type '" << mapping.mappingType << "' ignored."
+                << std::endl;
+      continue;
+    }
+
+    // Add to mapping table
+    auto key = std::make_pair(mapping.sourceScanCode, mapping.sourceNeedsE0);
+    keyMappings_[key] = mapping.targetKeyId;
+  }
+}
+
 void PhysicalKeyDetector::processKeyStroke(
     const InterceptionKeyStroke &stroke) {
   if (isModifierKey(stroke)) {
@@ -228,5 +266,36 @@ void PhysicalKeyDetector::updateModifierState(
   KeyState *key = states_.findKeyByScanCode(stroke.code, isE0);
   if (key) {
     key->pressed = isPressed;
+  }
+}
+
+void PhysicalKeyDetector::applyKeyMapping(unsigned short scanCode, bool needsE0,
+                                          bool isPressed) {
+  auto key = std::make_pair(scanCode, needsE0);
+  auto it = keyMappings_.find(key);
+
+  if (it == keyMappings_.end()) {
+    return; // No mapping
+  }
+
+  // Get target key
+  KeyState *targetKey = states_.findKeyById(it->second);
+  if (!targetKey) {
+    return; // Target key doesn't exist (shouldn't happen)
+  }
+
+  // For "additional" type:
+  // - Source key pressed → mark target key as pressed
+  // - Source key released → mark target key as released
+  //   (simplified handling: directly mark as released)
+  //   (if target key itself is pressed, updateModifierState will reset it to
+  //   pressed)
+  if (isPressed) {
+    targetKey->pressed = true;
+  } else {
+    // When releasing, need to check if target key itself is pressed
+    // Simplified handling here: directly mark as released
+    // If target key itself is pressed, updateModifierState will reset it
+    targetKey->pressed = false;
   }
 }

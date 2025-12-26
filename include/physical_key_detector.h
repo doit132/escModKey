@@ -2,11 +2,13 @@
 #define PHYSICAL_KEY_DETECTOR_H
 
 #include "interception.h"
+#include <map>
 #include <string>
 #include <vector>
 
 // Forward declaration
 struct CustomKeyConfig;
+struct KeyMappingConfig;
 
 // Single key state
 struct KeyState {
@@ -95,6 +97,13 @@ public:
                             const std::vector<std::string> &disabledKeys,
                             const std::vector<CustomKeyConfig> &customKeys);
 
+  // Initialize with full configuration including key mappings
+  void initializeWithConfig(bool monitorCtrl, bool monitorShift,
+                            bool monitorAlt, bool monitorWin,
+                            const std::vector<std::string> &disabledKeys,
+                            const std::vector<CustomKeyConfig> &customKeys,
+                            const std::vector<KeyMappingConfig> &keyMappings);
+
   // Process a key stroke and update states
   void processKeyStroke(const InterceptionKeyStroke &stroke);
 
@@ -110,8 +119,12 @@ public:
 private:
   ModifierKeyStates states_;
 
+  // Key mapping: source key (scanCode, needsE0) -> target key ID
+  std::map<std::pair<unsigned short, bool>, std::string> keyMappings_;
+
   bool isModifierKey(const InterceptionKeyStroke &stroke) const;
   void updateModifierState(const InterceptionKeyStroke &stroke);
+  void applyKeyMapping(unsigned short scanCode, bool needsE0, bool isPressed);
 };
 
 #endif // PHYSICAL_KEY_DETECTOR_H
