@@ -55,3 +55,54 @@ disabledKeys = []
 # Example for CapsLock: [[0x3A, false, "CapsLock", 0x14]]
 # CapsLock 示例: [[0x3A, false, "CapsLock", 0x14]]
 customKeys = []
+
+# Key Mappings
+# 按键映射配置
+# 
+# If you use key mapping software (like AutoHotkey) to remap non-modifier keys
+# to modifier keys, configure the mappings here so the tool can correctly track
+# physical key states and avoid false "stuck" detections.
+# 如果你使用按键映射软件（如 AutoHotkey）将非修饰键映射为修饰键，
+# 请在此配置映射关系，以便工具正确追踪物理按键状态，避免误判为"卡住"。
+#
+# Format / 格式:
+# [[keyMappings]]
+# sourceScanCode = 0x3A              # Source key scan code / 源按键扫描码
+# sourceNeedsE0 = false              # Whether source key needs E0 flag / 源按键是否需要 E0 标志
+# targetKeyId = "lctrl"              # Target modifier key ID / 目标修饰键 ID
+# mappingType = "additional"         # Mapping type / 映射类型
+# description = "CapsLock -> Ctrl"   # Optional description / 可选描述
+#
+# Valid targetKeyId values / 有效的 targetKeyId 值:
+#   "lctrl", "rctrl", "lshift", "rshift", "lalt", "ralt", "lwin", "rwin"
+#
+# Valid mappingType values / 有效的 mappingType 值:
+#   "additional" - Source and target keys are both monitored (recommended)
+#                  源按键和目标按键都被监控（推荐）
+#   "replace"    - Source key replaces target key (not yet implemented)
+#                  源按键替换目标按键（尚未实现）
+#
+# Common mapping scenarios / 常见映射场景:
+#
+# 1. CapsLock -> Left Ctrl (most common)
+#    CapsLock 映射为左 Ctrl（最常见）
+#    Scan code: 0x3A, E0: false
+#
+# 2. Left Ctrl -> Left Win (for custom layouts)
+#    左 Ctrl 映射为左 Win（自定义布局）
+#    Scan code: 0x1D, E0: false
+#
+# 3. Right Alt -> Right Ctrl (for international keyboards)
+#    右 Alt 映射为右 Ctrl（国际键盘）
+#    Scan code: 0x38, E0: true
+#
+# Example configuration / 配置示例:
+# Uncomment the following lines to enable CapsLock -> Left Ctrl mapping
+# 取消注释以下行以启用 CapsLock -> 左 Ctrl 映射
+
+# [[keyMappings]]
+# sourceScanCode = 0x3A
+# sourceNeedsE0 = false
+# targetKeyId = "lctrl"
+# mappingType = "additional"
+# description = "CapsLock -> Left Ctrl"

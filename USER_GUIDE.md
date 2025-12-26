@@ -112,6 +112,7 @@ Left Ctrl   : Physical[RELEASED] Virtual[PRESSED] <-- MISMATCH (1523ms) [STUCK!]
 - **按键监控**：`monitorCtrl/Shift/Alt/Win` - 快速开关标准修饰键监控
 - **禁用按键**：`disabledKeys` - 禁用特定的左右键
 - **自定义按键**：`customKeys` - 添加自定义按键监控（如 CapsLock）
+- **按键映射**：`keyMappings` - 配置非修饰键到修饰键的映射关系
 - **通知设置**：`notificationsEnabled`, `notifyOnFix`, `notifyOnStartup` - 控制通知行为
 
 ### 配置示例
@@ -128,6 +129,341 @@ monitorWin = false  # 禁用 Win 键监控
 
 disabledKeys = ["rwin"]  # 禁用右 Win 键
 customKeys = [[0x3A, false, "CapsLock", 0x14]]  # 添加 CapsLock 监控
+
+# 按键映射示例
+[[keyMappings]]
+sourceScanCode = 0x3A
+sourceNeedsE0 = false
+targetKeyId = "lctrl"
+mappingType = "additional"
+description = "CapsLock -> Left Ctrl"
+```
+
+## 按键映射支持
+
+### 什么是按键映射？
+
+如果你使用按键映射软件（如 AutoHotkey、PowerToys、SharpKeys 等）将非修饰键映射为修饰键，本工具需要知道这些映射关系，以便正确追踪物理按键状态。
+
+### 为什么需要配置映射？
+
+**问题场景**：假设你使用 AutoHotkey 将 CapsLock 映射为 Ctrl：
+
+1. 你按下 CapsLock（物理按键）
+2. AutoHotkey 将其转换为 Ctrl（虚拟按键）
+3. 本工具检测到：
+   - 物理 Ctrl：未按下
+   - 虚拟 Ctrl：按下
+4. 工具误判为"Ctrl 卡住"并尝试修复
+
+**解决方案**：配置映射关系后，工具知道 CapsLock 物理按下时应该同步更新 Ctrl 的物理状态，避免误判。
+
+### 配置按键映射
+
+在 `config.toml` 文件中添加 `[[keyMappings]]` 节：
+
+```toml
+[[keyMappings]]
+sourceScanCode = 0x3A      # 源按键扫描码
+sourceNeedsE0 = false      # 源按键是否需要 E0 标志
+targetKeyId = "lctrl"      # 目标修饰键 ID
+mappingType = "additional" # 映射类型
+description = "CapsLock -> Left Ctrl"  # 可选描述
+```
+
+### 配置字段说明
+
+#### sourceScanCode（源按键扫描码）
+
+源按键的硬件扫描码，十六进制格式（0x00-0xFF）。
+
+**常见按键扫描码**：
+
+| 按键 | 扫描码 | 说明 |
+|------|--------|------|
+| CapsLock | 0x3A | 大写锁定键 |
+| Left Ctrl | 0x1D | 左 Ctrl |
+| Right Ctrl | 0x1D | 右 Ctrl（需要 E0） |
+| Left Alt | 0x38 | 左 Alt |
+| Right Alt | 0x38 | 右 Alt（需要 E0） |
+| Left Shift | 0x2A | 左 Shift |
+| Right Shift | 0x36 | 右 Shift |
+| Tab | 0x0F | Tab 键 |
+| Backspace | 0x0E | 退格键 |
+
+**如何查找扫描码**：
+- 使用在线工具：[Scan Code Mapper](https://www.win.tue.nl/~aeb/linux/kbd/scancodes.html)
+- 使用 AutoHotkey 的 `KeyHistory` 命令
+- 参考 Windows 扫描码文档
+
+#### sourceNeedsE0（E0 标志）
+
+布尔值，指示源按键是否需要 E0 扩展标志。
+
+**规则**：
+- `false`：大多数标准按键（CapsLock、左 Ctrl、左 Alt、左 Shift 等）
+- `true`：扩展按键（右 Ctrl、右 Alt、右 Win、方向键、Home/End 等）
+
+**示例**：
+```toml
+# CapsLock 不需要 E0
+sourceScanCode = 0x3A
+sourceNeedsE0 = false
+
+# 右 Alt 需要 E0
+sourceScanCode = 0x38
+sourceNeedsE0 = true
+```
+
+#### targetKeyId（目标修饰键 ID）
+
+目标修饰键的标识符，必须是以下值之一：
+
+| 目标键 ID | 说明 |
+|-----------|------|
+| `"lctrl"` | 左 Ctrl |
+| `"rctrl"` | 右 Ctrl |
+| `"lshift"` | 左 Shift |
+| `"rshift"` | 右 Shift |
+| `"lalt"` | 左 Alt |
+| `"ralt"` | 右 Alt |
+| `"lwin"` | 左 Win |
+| `"rwin"` | 右 Win |
+
+**注意**：
+- 使用小写字母
+- 目标按键必须在监控列表中（通过 `monitorCtrl/Shift/Alt/Win` 启用）
+- 如果目标按键未被监控，映射将被忽略并记录警告
+
+#### mappingType（映射类型）
+
+映射行为类型，当前支持：
+
+| 类型 | 说明 | 推荐 |
+|------|------|------|
+| `"additional"` | 源按键和目标按键都被监控，源按键按下时同步更新目标按键状态 | ✅ 推荐 |
+| `"replace"` | 源按键完全替换目标按键（尚未实现） | ❌ 未实现 |
+
+**默认值**：如果未指定或值无效，默认使用 `"additional"`。
+
+**additional 类型行为**：
+- 源按键按下 → 目标按键物理状态标记为按下
+- 源按键释放 → 目标按键物理状态标记为释放
+- 目标按键本身按下 → 正常更新物理状态
+- 多个源按键映射到同一目标 → 任意一个按下时目标保持按下
+
+#### description（描述）
+
+可选字段，用于说明映射用途，便于配置文件管理。
+
+```toml
+description = "CapsLock -> Left Ctrl for Vim users"
+```
+
+### 常见映射场景
+
+#### 1. CapsLock → Left Ctrl（最常见）
+
+**使用场景**：Vim 用户、Emacs 用户、程序员常用映射
+
+**AutoHotkey 脚本**：
+```ahk
+CapsLock::LCtrl
+```
+
+**配置**：
+```toml
+[[keyMappings]]
+sourceScanCode = 0x3A
+sourceNeedsE0 = false
+targetKeyId = "lctrl"
+mappingType = "additional"
+description = "CapsLock -> Left Ctrl"
+```
+
+#### 2. Left Ctrl → Left Win（自定义布局）
+
+**使用场景**：将 Ctrl 功能移到更容易按的位置
+
+**AutoHotkey 脚本**：
+```ahk
+LCtrl::LWin
+```
+
+**配置**：
+```toml
+[[keyMappings]]
+sourceScanCode = 0x1D
+sourceNeedsE0 = false
+targetKeyId = "lwin"
+mappingType = "additional"
+description = "Left Ctrl -> Left Win"
+```
+
+#### 3. Right Alt → Right Ctrl（国际键盘）
+
+**使用场景**：国际键盘布局优化
+
+**AutoHotkey 脚本**：
+```ahk
+RAlt::RCtrl
+```
+
+**配置**：
+```toml
+[[keyMappings]]
+sourceScanCode = 0x38
+sourceNeedsE0 = true  # 注意：右 Alt 需要 E0
+targetKeyId = "rctrl"
+mappingType = "additional"
+description = "Right Alt -> Right Ctrl"
+```
+
+#### 4. Tab → Left Ctrl（高级布局）
+
+**使用场景**：极简主义键盘布局
+
+**AutoHotkey 脚本**：
+```ahk
+Tab::LCtrl
+```
+
+**配置**：
+```toml
+[[keyMappings]]
+sourceScanCode = 0x0F
+sourceNeedsE0 = false
+targetKeyId = "lctrl"
+mappingType = "additional"
+description = "Tab -> Left Ctrl"
+```
+
+#### 5. 多个源按键映射到同一目标
+
+**使用场景**：多个按键都可以触发同一修饰键
+
+**配置**：
+```toml
+[[keyMappings]]
+sourceScanCode = 0x3A
+sourceNeedsE0 = false
+targetKeyId = "lctrl"
+mappingType = "additional"
+description = "CapsLock -> Left Ctrl"
+
+[[keyMappings]]
+sourceScanCode = 0x0F
+sourceNeedsE0 = false
+targetKeyId = "lctrl"
+mappingType = "additional"
+description = "Tab -> Left Ctrl"
+```
+
+### 配置验证
+
+工具会在启动时验证映射配置：
+
+**有效配置**：
+- ✅ 所有必需字段都存在
+- ✅ targetKeyId 是有效的修饰键 ID
+- ✅ 目标按键在监控列表中
+- ✅ mappingType 是有效值
+
+**无效配置处理**：
+- ❌ 缺少必需字段 → 忽略该映射，记录警告
+- ❌ 无效的 targetKeyId → 拒绝该映射，记录错误
+- ❌ 目标按键未被监控 → 忽略该映射，记录警告
+- ❌ 无效的 mappingType → 使用默认值 "additional"，记录警告
+
+### 测试映射配置
+
+配置映射后，测试是否生效：
+
+1. **启动工具**（GUI 或控制台版本）
+2. **检查日志**：确认没有警告或错误
+3. **测试映射**：
+   - 按下源按键（如 CapsLock）
+   - 观察目标按键（如 Ctrl）的物理状态是否更新
+   - 确认不会误判为"卡住"
+4. **测试目标按键本身**：
+   - 直接按下目标按键（如 Ctrl）
+   - 确认状态正常更新
+
+### 故障排除
+
+#### 映射未生效
+
+**检查清单**：
+1. ✅ 配置文件格式正确（TOML 语法）
+2. ✅ 扫描码和 E0 标志正确
+3. ✅ targetKeyId 拼写正确（小写）
+4. ✅ 目标按键已启用监控（`monitorCtrl = true` 等）
+5. ✅ 已重启工具或重新加载配置
+
+**查看日志**：
+- 控制台版本：直接显示警告和错误
+- GUI 版本：检查是否有错误通知
+
+#### 仍然误判为卡住
+
+**可能原因**：
+1. 映射配置不正确
+2. 按键映射软件使用了不同的映射方式
+3. 扫描码或 E0 标志错误
+
+**解决方法**：
+1. 使用 AutoHotkey 的 `KeyHistory` 查看实际扫描码
+2. 尝试切换 E0 标志（true/false）
+3. 检查按键映射软件的配置
+
+#### 配置文件解析错误
+
+**常见错误**：
+```
+Error parsing config file: expected '=', found '>'
+```
+
+**解决方法**：
+- 检查 TOML 语法（特别是引号、等号、逗号）
+- 使用 TOML 验证工具检查格式
+- 参考 `config.toml` 中的示例
+
+### 高级用法
+
+#### 与自定义按键结合
+
+如果你将非修饰键映射为修饰键，可能还需要监控源按键：
+
+```toml
+[keys]
+# 监控 CapsLock 作为自定义按键
+customKeys = [[0x3A, false, "CapsLock", 0x14]]
+
+# 配置 CapsLock -> Ctrl 映射
+[[keyMappings]]
+sourceScanCode = 0x3A
+sourceNeedsE0 = false
+targetKeyId = "lctrl"
+mappingType = "additional"
+description = "CapsLock -> Left Ctrl"
+```
+
+#### 禁用特定修饰键
+
+如果你完全用映射替换了某个修饰键，可以禁用原始按键：
+
+```toml
+[keys]
+# 禁用右 Win 键（因为已映射到其他键）
+disabledKeys = ["rwin"]
+
+# 配置映射
+[[keyMappings]]
+sourceScanCode = 0x3A
+sourceNeedsE0 = false
+targetKeyId = "lwin"
+mappingType = "additional"
+description = "CapsLock -> Left Win"
 ```
 
 ## 工作原理
